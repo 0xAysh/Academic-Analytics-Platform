@@ -29,21 +29,10 @@
               <span>Home</span>
             </a>
           </li>
-          <li class="sidebar__item">
-            <a href="/html/dataset-info.html" class="sidebar__link">
-              <span class="sidebar__icon">📊</span>
-              <span>Dataset Info</span>
-            </a>
-          </li>
-          <li class="sidebar__item">
-            <a href="/html/graphs.html" class="sidebar__link">
-              <span class="sidebar__icon">📈</span>
-              <span>Graphs</span>
-            </a>
-          </li>
+          
           <li class="sidebar__item">
             <a href="/html/plot-control.html" class="sidebar__link">
-              <span class="sidebar__icon">📉</span>
+              <span class="sidebar__icon">📈</span>
               <span>Plot Controls</span>
             </a>
           </li>
@@ -113,39 +102,40 @@
       </section>
 
       <section class="charts">
-        <div class="chart-card">
-          <h3 class="chart-card__title">GPA Trend Over Time</h3>
-          <div class="chart-card__container">
-            <canvas id="gpaChart"></canvas>
-          </div>
+        <div class="two-column__section two-column__section--table" id="course-card">
+            <h2 class="two-column__title">Course Breakdown</h2>
+            <div class="two-column__table-container">
+              <table class="table">
+                <thead class="table__head">
+                  <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Credits</th>
+                    <th>Grade</th>
+                    <th>GPA</th>
+                  </tr>
+                </thead>
+                <tbody class="table__body" id="courseTableBody"></tbody>
+              </table>
+            </div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card" id="credits-card">
           <h3 class="chart-card__title">Credits Per Term</h3>
           <div class="chart-card__content">
             <canvas id="creditsChart"></canvas>
           </div>
         </div>
+        
       </section>
 
       <section class="two-column">
-        <div class="two-column__section two-column__section--table">
-          <h2 class="two-column__title">Course Breakdown</h2>
-          <div class="two-column__table-container">
-            <table class="table">
-              <thead class="table__head">
-                <tr>
-                  <th>Course Code</th>
-                  <th>Course Name</th>
-                  <th>Credits</th>
-                  <th>Grade</th>
-                  <th>GPA</th>
-                </tr>
-              </thead>
-              <tbody class="table__body" id="courseTableBody"></tbody>
-            </table>
-          </div>
+        <div class="chart-card" id="gpa-card">
+            <h3 class="chart-card__title">GPA Trend Over Time</h3>
+            <div class="chart-card__container">
+              <canvas id="gpaChart"></canvas>
+            </div>
         </div>
-        <div class="two-column__section two-column__section--chart">
+        <div class="two-column__section two-column__section--chart" id="grade-card">
           <h2 class="two-column__title">Grade Distribution</h2>
           <div class="two-column__chart-wrapper">
             <canvas id="gradeChart"></canvas>
