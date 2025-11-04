@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academic Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header__left">
+      <div class="header__logo">📊</div>
+      <div class="header__title">My Academic Dashboard</div>
+    </div>
+    <div class="header__right">
+      <div class="header__avatar" aria-label="User Profile">JD</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <ul class="sidebar__list">
+          <li class="sidebar__item">
+            <a href="/html/index.html" class="sidebar__link sidebar__link--active">
+              <span class="sidebar__icon">🏠</span>
+              <span>Home</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/dataset-info.html" class="sidebar__link">
+              <span class="sidebar__icon">📊</span>
+              <span>Dataset Info</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/graphs.html" class="sidebar__link">
+              <span class="sidebar__icon">📈</span>
+              <span>Graphs</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/plot-control.html" class="sidebar__link">
+              <span class="sidebar__icon">📉</span>
+              <span>Plot Controls</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/system.html" class="sidebar__link">
+              <span class="sidebar__icon">⚙️</span>
+              <span>System</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/security.html" class="sidebar__link">
+              <span class="sidebar__icon">🛡️</span>
+              <span>Security</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/faq.html" class="sidebar__link">
+              <span class="sidebar__icon">❓</span>
+              <span>FAQ</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/about.html" class="sidebar__link">
+              <span class="sidebar__icon">ℹ️</span>
+              <span>About</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="welcome">
+        <h1 class="welcome__title">Welcome Back, Student!</h1>
+        <p class="welcome__subtitle">Here's your academic overview for this semester</p>
+      </section>
+
+      <section class="metrics">
+        <div class="metrics__card">
+          <div class="metrics__icon metrics__icon--blue">🎓</div>
+          <div class="metrics__info">
+            <div class="metrics__label">Overall GPA</div>
+            <div class="metrics__value" id="overallGPA">-</div>
+          </div>
+        </div>
+        <div class="metrics__card">
+          <div class="metrics__icon metrics__icon--green">📊</div>
+          <div class="metrics__info">
+            <div class="metrics__label">Current Semester GPA</div>
+            <div class="metrics__value" id="currentSemesterGPA">-</div>
+          </div>
+        </div>
+        <div class="metrics__card">
+          <div class="metrics__icon metrics__icon--purple">📈</div>
+          <div class="metrics__info">
+            <div class="metrics__label">Credits Completed</div>
+            <div class="metrics__value" id="creditsCompleted">-</div>
+          </div>
+        </div>
+        <div class="metrics__card">
+          <div class="metrics__icon metrics__icon--orange">📚</div>
+          <div class="metrics__info">
+            <div class="metrics__label">Current Semester Courses</div>
+            <div class="metrics__value" id="currentSemesterCourses">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="charts">
+        <div class="chart-card">
+          <h3 class="chart-card__title">GPA Trend Over Time</h3>
+          <div class="chart-card__container">
+            <canvas id="gpaChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-card__title">Credits Per Term</h3>
+          <div class="chart-card__content">
+            <canvas id="creditsChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="two-column">
+        <div class="two-column__section two-column__section--table">
+          <h2 class="two-column__title">Course Breakdown</h2>
+          <div class="two-column__table-container">
+            <table class="table">
+              <thead class="table__head">
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                  <th>Credits</th>
+                  <th>Grade</th>
+                  <th>GPA</th>
+                </tr>
+              </thead>
+              <tbody class="table__body" id="courseTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="two-column__section two-column__section--chart">
+          <h2 class="two-column__title">Grade Distribution</h2>
+          <div class="two-column__chart-wrapper">
+            <canvas id="gradeChart"></canvas>
+          </div>
+        </div>
+        
+      </section>
+
+      <section class="strength">
+        <div class="strength__header">
+          <div class="strength__icon">📈</div>
+          <h2 class="strength__title">Strength Summary</h2>
+        </div>
+        <div class="strength__grid">
+          <div class="strength__column">
+            <h3 class="strength__subtitle">Strong Areas</h3>
+            <div id="strongAreas"></div>
+          </div>
+          <div class="strength__column">
+            <h3 class="strength__subtitle">Areas for Improvement</h3>
+            <div id="improvementAreas"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/data.js"></script>
+  <script src="/js/modules/utils.js"></script>
+  <script src="/js/modules/metrics.js"></script>
+  <script src="/js/modules/charts.js"></script>
+  <script src="/js/modules/table.js"></script>
+  <script src="/js/modules/insights.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
