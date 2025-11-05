@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header__left">
+      <div class="header__logo">📊</div>
+      <div class="header__title">My Academic Dashboard</div>
+    </div>
+    <div class="header__right">
+      <div class="header__avatar-container">
+        <div class="header__avatar" id="avatarIcon" aria-label="User Profile">AR</div>
+        <div class="header__dropdown" id="avatarDropdown">
+          <button class="header__dropdown-item" id="logoutBtn">
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <ul class="sidebar__list">
+          <li class="sidebar__item">
+            <a href="/html/index.html" class="sidebar__link">
+              <span class="sidebar__icon">🏠</span>
+              <span>Home</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/plot-control.html" class="sidebar__link">
+              <span class="sidebar__icon">📈</span>
+              <span>Plot Controls</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/settings.html" class="sidebar__link sidebar__link--active">
+              <span class="sidebar__icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/faq.html" class="sidebar__link">
+              <span class="sidebar__icon">❓</span>
+              <span>FAQ</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/about.html" class="sidebar__link">
+              <span class="sidebar__icon">ℹ️</span>
+              <span>About</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="settings">
+        <h1 class="section__title">Settings</h1>
+
+        <div class="cards-grid">
+          <!-- Account Information (moved before Change Password) -->
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Account Information</h2>
+            </div>
+            <div class="card__body">
+              <div class="grid grid--3cols">
+                <div class="info-tile">
+                  <div class="info-tile__label">Email</div>
+                  <div class="info-tile__value" id="infoEmail">student@university.edu</div>
+                </div>
+                <div class="info-tile">
+                  <div class="info-tile__label">Major</div>
+                  <div class="info-tile__value" id="infoMajor">Computer Science</div>
+                </div>
+                <div class="info-tile">
+                  <div class="info-tile__label">Year</div>
+                  <div class="info-tile__value" id="infoYear">Junior (Year 3)</div>
+                </div>
+              </div>
+
+              <div class="actions-row">
+                <button class="btn btn--secondary" id="editProfileBtn">Edit Profile Information</button>
+                <button class="btn btn--primary" id="saveChangesBtn">Save Changes</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Password -->
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Change Password</h2>
+            </div>
+            <div class="card__body">
+              <form id="passwordForm" autocomplete="off">
+                <div class="form__group">
+                  <label class="form__label" for="currentPassword">Current Password</label>
+                  <input class="form__input" type="password" id="currentPassword" placeholder="Enter current password">
+                </div>
+                <div class="form__group">
+                  <label class="form__label" for="newPassword">New Password</label>
+                  <input class="form__input" type="password" id="newPassword" placeholder="Enter new password">
+                  <div class="form__hint">Password must be at least 8 characters long</div>
+                </div>
+                <div class="form__group">
+                  <label class="form__label" for="confirmPassword">Confirm New Password</label>
+                  <input class="form__input" type="password" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <button type="submit" class="btn btn--primary">Update Password</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/modules/settings.js"></script>
+</body>
+</html>
+
+

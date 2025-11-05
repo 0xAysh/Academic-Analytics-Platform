@@ -4,8 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Academic Dashboard</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/styles/tokens.css">
+  <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/components.css">
+  <link rel="stylesheet" href="/styles/charts.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="/js/main.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
 <body>
@@ -15,7 +19,14 @@
       <div class="header__title">My Academic Dashboard</div>
     </div>
     <div class="header__right">
-      <div class="header__avatar" aria-label="User Profile">JD</div>
+      <div class="header__avatar-container">
+        <div class="header__avatar" id="avatarIcon" aria-label="User Profile">AR</div>
+        <div class="header__dropdown" id="avatarDropdown">
+          <button class="header__dropdown-item" id="logoutBtn">
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -37,15 +48,9 @@
             </a>
           </li>
           <li class="sidebar__item">
-            <a href="/html/system.html" class="sidebar__link">
+            <a href="/html/settings.html" class="sidebar__link">
               <span class="sidebar__icon">⚙️</span>
-              <span>System</span>
-            </a>
-          </li>
-          <li class="sidebar__item">
-            <a href="/html/security.html" class="sidebar__link">
-              <span class="sidebar__icon">🛡️</span>
-              <span>Security</span>
+              <span>Settings</span>
             </a>
           </li>
           <li class="sidebar__item">
@@ -65,8 +70,22 @@
     </aside>
 
     <main class="main">
+      <section class="upload">
+        <div class="upload__card">
+          <div class="upload__icon" aria-hidden="true">📤</div>
+          <div class="upload__content">
+            <h3 class="upload__title">Upload Transcript</h3>
+            <p class="upload__desc">Upload your academic transcript to automatically populate your course data and visualize your progress.</p>
+            <label class="upload__btn">
+              <input type="file" id="transcriptFile" accept=".pdf,.json,.txt" hidden>
+              <span>Choose File</span>
+            </label>
+            <span class="upload__file-name" id="uploadFileName"></span>
+          </div>
+        </div>
+      </section>
       <section class="welcome">
-        <h1 class="welcome__title">Welcome Back, Student!</h1>
+        <h1 class="welcome__title">Welcome, Student</h1>
         <p class="welcome__subtitle">Here's your academic overview for this semester</p>
       </section>
 

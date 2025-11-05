@@ -1,0 +1,7 @@
+/* Chart containers */
+.chart { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-3); box-shadow: var(--shadow-2); padding: var(--space-4); }
+.chart__title { margin: 0 0 8px 0; font-weight: 600; color: #111827; }
+.chart__area { position: relative; height: 300px; }
+.chart__area canvas { max-height: 100%; }
+.chart--pie .chart__area { height: 320px; }
+

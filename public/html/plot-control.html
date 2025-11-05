@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plot Controls - Academic Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header__left">
+      <div class="header__logo">📊</div>
+      <div class="header__title">My Academic Dashboard</div>
+    </div>
+    <div class="header__right">
+      <div class="header__avatar-container">
+        <div class="header__avatar" id="avatarIcon" aria-label="User Profile">AR</div>
+        <div class="header__dropdown" id="avatarDropdown">
+          <button class="header__dropdown-item" id="logoutBtn">
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <ul class="sidebar__list">
+          <li class="sidebar__item">
+            <a href="/html/index.html" class="sidebar__link">
+              <span class="sidebar__icon">🏠</span>
+              <span>Home</span>
+            </a>
+          </li>
+          
+          <li class="sidebar__item">
+            <a href="/html/plot-control.html" class="sidebar__link sidebar__link--active">
+              <span class="sidebar__icon">📈</span>
+              <span>Plot Controls</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/settings.html" class="sidebar__link">
+              <span class="sidebar__icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/faq.html" class="sidebar__link">
+              <span class="sidebar__icon">❓</span>
+              <span>FAQ</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/about.html" class="sidebar__link">
+              <span class="sidebar__icon">ℹ️</span>
+              <span>About</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="plot-controls">
+        <div class="plot-controls__header">
+          <h1 class="plot-controls__title">Plot Controls</h1>
+          <p class="plot-controls__subtitle">Customize your visualizations by selecting different data dimensions and chart types</p>
+        </div>
+
+        <div class="plot-controls__content">
+          <div class="plot-controls__config">
+            <h2 class="plot-controls__section-title">Configuration</h2>
+            
+            <div class="plot-controls__form-group" id="axesConfig">
+              <div class="plot-controls__form-group">
+                <label class="plot-controls__label" for="xAxis">X-Axis</label>
+                <select class="plot-controls__select" id="xAxis">
+                  <option value="semester" selected>Semester</option>
+                  <option value="year">Year</option>
+                  <option value="subject">Subject</option>
+                </select>
+              </div>
+
+              <div class="plot-controls__form-group">
+                <label class="plot-controls__label" for="yAxis">Y-Axis</label>
+                <select class="plot-controls__select" id="yAxis">
+                  <option value="gpa" selected>GPA</option>
+                  <option value="credits">Credits</option>
+                  <option value="courses">Courses</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="plot-controls__form-group" id="pieDataConfig" style="display: none;">
+              <label class="plot-controls__label" for="pieData">Data</label>
+              <select class="plot-controls__select" id="pieData">
+                <option value="grades" selected>Grade Distribution</option>
+                <option value="semester">By Semester</option>
+                <option value="subject">By Subject</option>
+              </select>
+            </div>
+
+            <div class="plot-controls__form-group">
+              <label class="plot-controls__label">Chart Type</label>
+              <div class="plot-controls__radio-group">
+                <label class="plot-controls__radio-label">
+                  <input type="radio" class="plot-controls__radio" name="chartType" value="line" checked>
+                  <span>Line Chart</span>
+                </label>
+                <label class="plot-controls__radio-label">
+                  <input type="radio" class="plot-controls__radio" name="chartType" value="bar">
+                  <span>Bar Chart</span>
+                </label>
+                <label class="plot-controls__radio-label">
+                  <input type="radio" class="plot-controls__radio" name="chartType" value="pie">
+                  <span>Pie Chart</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="plot-controls__preview">
+            <h2 class="plot-controls__section-title">Visualization Preview</h2>
+            
+            <div class="plot-controls__preview-area">
+              <div class="plot-controls__preview-placeholder">
+                <div class="plot-controls__preview-icon">📊</div>
+                <p class="plot-controls__preview-text">Chart Preview</p>
+                <p class="plot-controls__preview-hint">Your visualization will appear here based on the selected configuration</p>
+              </div>
+              <canvas id="plotPreview" style="display: none;"></canvas>
+            </div>
+
+            <div class="plot-controls__config-summary">
+              <h3 class="plot-controls__summary-title">Current Configuration</h3>
+              <div class="plot-controls__summary-content" id="configSummary">
+                <div class="plot-controls__summary-item" id="summaryItemXAxis">X-Axis: <span id="summaryXAxis">semester</span></div>
+                <div class="plot-controls__summary-item" id="summaryItemYAxis">Y-Axis: <span id="summaryYAxis">gpa</span></div>
+                <div class="plot-controls__summary-item" id="summaryItemPieData" style="display: none;">Data: <span id="summaryPieData">grades</span></div>
+                <div class="plot-controls__summary-item" id="summaryItemChartTypes">Chart Type: <span id="summaryChartTypes">line</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="plot-controls__actions">
+          <button class="plot-controls__btn plot-controls__btn--secondary" id="resetBtn">
+            <span>🔄</span>
+            <span>Reset</span>
+          </button>
+          <button class="plot-controls__btn plot-controls__btn--primary" id="generateBtn">
+            <span>📊</span>
+            <span>Generate Plot</span>
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/data.js"></script>
+  <script src="/js/modules/utils.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/modules/plot-control.js"></script>
+</body>
+</html>
+
