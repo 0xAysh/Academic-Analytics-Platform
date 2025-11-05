@@ -1,5 +1,5 @@
 :root {
-  /* Colors */
+  /* Colors - New naming */
   --color-primary: #2563eb;
   --color-success: #10b981;
   --color-purple: #8b5cf6;
@@ -9,6 +9,17 @@
   --color-bg: #f9fafb;
   --color-surface: #ffffff;
   --color-border: #e5e7eb;
+
+  /* Colors - Legacy naming (for backward compatibility) */
+  --primary-color: var(--color-primary);
+  --success-color: var(--color-success);
+  --purple-color: var(--color-purple);
+  --orange-color: var(--color-orange);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-muted);
+  --bg-color: var(--color-bg);
+  --card-bg: var(--color-surface);
+  --border-color: var(--color-border);
 
   /* Spacing */
   --space-1: 4px;
@@ -31,6 +42,7 @@
 
   /* Layout */
   --sidebar-w: 250px;
+  --sidebar-width: var(--sidebar-w);
 }
 
 @media (prefers-reduced-motion: reduce) {
