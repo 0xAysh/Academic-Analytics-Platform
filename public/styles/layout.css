@@ -350,9 +350,9 @@ body {
 }
 
 #gradeChart {
-  max-width: 240px;
-  max-height: 240px;
-  transform: scale(0.96);
+  max-width: 300px;
+  max-height: 300px;
+  transform: scale(1.2);
   transform-origin: center;
 }
 
@@ -872,6 +872,86 @@ body {
 .upload__btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; background: var(--primary-color); color: #fff; border-radius: 8px; cursor: pointer; user-select: none; font-weight: 600; font-size: 0.95rem; }
 .upload__btn:hover { background: #1d4ed8; }
 .upload__file-name { margin-left: 12px; color: var(--text-secondary); font-size: 0.9rem; }
+
+/* Edit Transcript - Term Accordion */
+.term-item {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.term-item__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  background: none;
+  border: 0;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.term-item__btn:hover {
+  background: #f9fafb;
+}
+
+.term-item__btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+
+.term-item__header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.term-item__summary {
+  flex: 1;
+}
+
+.term-item__chevron {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.term-item[data-open="true"] .term-item__chevron {
+  transform: rotate(180deg);
+}
+
+.term-item__content {
+  overflow: hidden;
+  height: 0;
+  opacity: 0;
+  transition: height 0.3s ease, opacity 0.2s ease;
+}
+
+.term-item__content-inner {
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  background: #fff;
+}
+
+.term-item[data-open="true"] .term-item__content {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-item__chevron,
+  .term-item__content {
+    transition: none;
+  }
+}
 
 @media (max-width: 768px) {
   .sidebar {

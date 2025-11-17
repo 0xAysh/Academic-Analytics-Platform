@@ -114,3 +114,18 @@ const transcriptData = {
     return totalUnits > 0 ? (totalPoints / totalUnits).toFixed(2) : null;
   }
 };
+
+// Make transcriptData available globally
+if (typeof window !== 'undefined') {
+  window.transcriptData = transcriptData;
+  
+  // Set localStorage flag to indicate data is loaded (for empty mode check)
+  // This allows the sample data to be displayed immediately
+  try {
+    if (transcriptData.terms && transcriptData.terms.length > 0) {
+      localStorage.setItem('transcriptLoaded', '1');
+    }
+  } catch (e) {
+    // Silently fail if localStorage is not available
+  }
+}

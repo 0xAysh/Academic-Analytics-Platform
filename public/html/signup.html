@@ -126,28 +126,58 @@
     </div>
    </div>
   </div>
-  <script>
-   (function(){
-     const form = document.getElementById('signupForm');
-     if (!form) return;
-     form.addEventListener('submit', function(e){
+  <script type="module">
+   import { register } from '/js/api/auth.js';
+   
+   const form = document.getElementById('signupForm');
+   const submitBtn = form?.querySelector('button[type="submit"]');
+   
+   if (form) {
+     form.addEventListener('submit', async function(e){
        e.preventDefault();
        const name = (document.getElementById('name')||{}).value || '';
        const email = (document.getElementById('email')||{}).value || '';
        const password = (document.getElementById('password')||{}).value || '';
        const confirm = (document.getElementById('confirm')||{}).value || '';
-       if (!name || !email || !password) { alert('Please fill all fields.'); return; }
-       if (password !== confirm) { alert('Passwords do not match.'); return; }
+       
+       if (!name || !email || !password) { 
+         alert('Please fill all fields.'); 
+         return; 
+       }
+       
+       if (password !== confirm) { 
+         alert('Passwords do not match.'); 
+         return; 
+       }
+       
+       if (password.length < 8) {
+         alert('Password must be at least 8 characters long.');
+         return;
+       }
+       
+       if (submitBtn) {
+         submitBtn.disabled = true;
+         submitBtn.innerHTML = 'Creating Account... <i class="fas fa-spinner fa-spin"></i>';
+       }
+       
        try {
-         // Demo-only store (no backend). Replace later with API call.
-         const users = JSON.parse(localStorage.getItem('users')||'{}');
-         users[email] = { name, email };
-         localStorage.setItem('users', JSON.stringify(users));
-         localStorage.setItem('authUser', JSON.stringify({ email }));
-       } catch (err) {}
-       window.location.href = '/html/index.html';
+         const response = await register(email, password, name);
+         
+         if (response.success) {
+           window.location.href = '/html/index.html';
+         } else {
+           alert(response.error || 'Registration failed');
+         }
+       } catch (error) {
+         alert(error.message || 'Registration failed. Please try again.');
+       } finally {
+         if (submitBtn) {
+           submitBtn.disabled = false;
+           submitBtn.innerHTML = 'Create Account <i class="fas fa-arrow-right"></i>';
+         }
+       }
      });
-   })();
+   }
   </script>
  </body>
 </html>

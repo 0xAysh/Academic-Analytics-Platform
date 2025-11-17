@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit - Academic Dashboard</title>
+  <link rel="stylesheet" href="/styles/tokens.css">
+  <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/components.css">
+  <link rel="stylesheet" href="/styles/layout.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header__left">
+      <div class="header__logo">📊</div>
+      <div class="header__title">My Academic Dashboard</div>
+    </div>
+    <div class="header__right">
+      <div class="header__avatar-container">
+        <div class="header__avatar" id="avatarIcon" aria-label="User Profile">AR</div>
+        <div class="header__dropdown" id="avatarDropdown">
+          <button class="header__dropdown-item" id="logoutBtn">
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <ul class="sidebar__list">
+          <li class="sidebar__item">
+            <a href="/html/index.html" class="sidebar__link">
+              <span class="sidebar__icon">🏠</span>
+              <span>Home</span>
+            </a>
+          </li>
+          
+          <li class="sidebar__item">
+            <a href="/html/plot-control.html" class="sidebar__link">
+              <span class="sidebar__icon">📈</span>
+              <span>Plot Controls</span>
+            </a>
+          </li>
+          
+          <li class="sidebar__item">
+            <a href="/html/edit-transcript.html" class="sidebar__link sidebar__link--active">
+              <span class="sidebar__icon">✏️</span>
+              <span>Edit</span>
+            </a>
+          </li>
+          
+          <li class="sidebar__item">
+            <a href="/html/settings.html" class="sidebar__link">
+              <span class="sidebar__icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/faq.html" class="sidebar__link">
+              <span class="sidebar__icon">❓</span>
+              <span>FAQ</span>
+            </a>
+          </li>
+          <li class="sidebar__item">
+            <a href="/html/about.html" class="sidebar__link">
+              <span class="sidebar__icon">ℹ️</span>
+              <span>About</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="welcome">
+            <h1 class="welcome__title">Edit</h1>
+            <p class="welcome__subtitle">Modify your academic transcript data</p>
+      </section>
+
+      <div id="noDataMessage" class="card" style="display: none;">
+        <p>No transcript data available. Please upload a transcript first.</p>
+        <a href="/html/index.html" class="btn btn--primary">Go to Dashboard</a>
+      </div>
+
+      <div id="transcriptEditor" style="display: none;">
+        <!-- Student Information Section -->
+        <section class="card" style="margin-bottom: 2rem;">
+          <div class="card__header">
+            <h2 class="card__title">Student Information</h2>
+          </div>
+          <div class="card__body">
+            <div class="form__group">
+              <label class="form__label" for="studentDegree">Degree</label>
+              <input type="text" id="studentDegree" class="form__input" placeholder="e.g., Computer Science Major">
+            </div>
+          </div>
+        </section>
+
+        <!-- Terms Section -->
+        <section class="card" style="margin-bottom: 2rem;">
+          <div class="card__header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card__title">Academic Terms</h2>
+            <button id="addTermBtn" class="btn btn--primary">Add Term</button>
+          </div>
+          <div class="card__body">
+            <div id="termsContainer"></div>
+          </div>
+        </section>
+
+        <!-- Save Button -->
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+          <button id="cancelBtn" class="btn btn--secondary">Cancel</button>
+          <button id="saveBtn" class="btn btn--primary">Save Changes</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/data.js"></script>
+  <script type="module" src="/js/pages/edit-transcript-entry.js" defer></script>
+</body>
+</html>
+

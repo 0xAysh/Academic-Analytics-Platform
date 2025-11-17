@@ -122,22 +122,49 @@
     </div>
    </div>
   </div>
-  <script>
-   (function(){
-     const form = document.getElementById('loginForm');
-     if (!form) return;
-     form.addEventListener('submit', function(e){
+  <script type="module">
+   import { login } from '/js/api/auth.js';
+   import { loadTranscriptData } from '/js/core/data.js';
+   
+   const form = document.getElementById('loginForm');
+   const submitBtn = form?.querySelector('button[type="submit"]');
+   
+   if (form) {
+     form.addEventListener('submit', async function(e){
        e.preventDefault();
        const email = (document.getElementById('email')||{}).value || '';
        const password = (document.getElementById('password')||{}).value || '';
-       if (!email || !password) { alert('Please enter email and password.'); return; }
+       
+       if (!email || !password) { 
+         alert('Please enter email and password.'); 
+         return; 
+       }
+       
+       if (submitBtn) {
+         submitBtn.disabled = true;
+         submitBtn.innerHTML = 'Signing In... <i class="fas fa-spinner fa-spin"></i>';
+       }
+       
        try {
-         // Demo-only: accept any email, any password
-         localStorage.setItem('authUser', JSON.stringify({ email }));
-       } catch (err) {}
-       window.location.href = '/html/index.html';
+         const response = await login(email, password);
+         
+         if (response.success) {
+           // Load transcript data after successful login
+           await loadTranscriptData();
+           window.location.href = '/html/index.html';
+         } else {
+           alert(response.error || 'Login failed');
+         }
+       } catch (error) {
+         alert(error.message || 'Login failed. Please try again.');
+       } finally {
+         if (submitBtn) {
+           submitBtn.disabled = false;
+           submitBtn.innerHTML = 'Sign In <i class="fas fa-arrow-right"></i>';
+         }
+       }
      });
-   })();
+   }
   </script>
  </body>
 </html>

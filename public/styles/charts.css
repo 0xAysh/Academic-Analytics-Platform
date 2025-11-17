@@ -3,5 +3,5 @@
 .chart__title { margin: 0 0 8px 0; font-weight: 600; color: #111827; }
 .chart__area { position: relative; height: 300px; }
 .chart__area canvas { max-height: 100%; }
-.chart--pie .chart__area { height: 320px; }
+.chart--pie .chart__area { height: 400px; }
 
