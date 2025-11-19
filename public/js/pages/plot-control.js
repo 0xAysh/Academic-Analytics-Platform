@@ -45,11 +45,11 @@ export function initPlotControls() {
     if (!selectedType) return;
 
     if (selectedType.value === 'pie') {
-      axesConfig.style.display = 'none';
-      pieDataConfig.style.display = 'block';
+      axesConfig.classList.add('hidden');
+      pieDataConfig.classList.remove('hidden');
     } else {
-      axesConfig.style.display = 'block';
-      pieDataConfig.style.display = 'none';
+      axesConfig.classList.remove('hidden');
+      pieDataConfig.classList.add('hidden');
     }
     updateSummary();
   }
@@ -71,17 +71,17 @@ export function initPlotControls() {
 
     if (chartType === 'pie') {
       const pieValue = pieData ? pieData.value : 'grades';
-      if (itemXAxis) itemXAxis.style.display = 'none';
-      if (itemYAxis) itemYAxis.style.display = 'none';
-      if (itemPieData) itemPieData.style.display = 'block';
+      if (itemXAxis) itemXAxis.classList.add('hidden');
+      if (itemYAxis) itemYAxis.classList.add('hidden');
+      if (itemPieData) itemPieData.classList.remove('hidden');
       if (summaryPieData) summaryPieData.textContent = pieValue;
       if (summaryChartTypes) summaryChartTypes.textContent = 'pie';
     } else {
       const xValue = xAxis ? xAxis.value : 'semester';
       const yValue = yAxis ? yAxis.value : 'gpa';
-      if (itemXAxis) itemXAxis.style.display = 'block';
-      if (itemYAxis) itemYAxis.style.display = 'block';
-      if (itemPieData) itemPieData.style.display = 'none';
+      if (itemXAxis) itemXAxis.classList.remove('hidden');
+      if (itemYAxis) itemYAxis.classList.remove('hidden');
+      if (itemPieData) itemPieData.classList.add('hidden');
       if (summaryXAxis) summaryXAxis.textContent = xValue;
       if (summaryYAxis) summaryYAxis.textContent = yValue;
       if (summaryChartTypes) summaryChartTypes.textContent = chartType;
@@ -172,8 +172,8 @@ function generatePlot() {
   }
 
   // Hide placeholder, show canvas
-  if (placeholder) placeholder.style.display = 'none';
-  canvas.style.display = 'block';
+  if (placeholder) placeholder.classList.add('hidden');
+  canvas.classList.remove('hidden');
 
   // Destroy existing chart if any
   if (plotChartInstance) {
@@ -611,7 +611,7 @@ function clearPreview() {
     plotChartInstance = null;
   }
 
-  if (canvas) canvas.style.display = 'none';
-  if (placeholder) placeholder.style.display = 'block';
+  if (canvas) canvas.classList.add('hidden');
+  if (placeholder) placeholder.classList.remove('hidden');
 }
 

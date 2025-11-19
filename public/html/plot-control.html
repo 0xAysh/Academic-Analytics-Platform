@@ -108,7 +108,7 @@
               </div>
             </div>
 
-            <div class="plot-controls__form-group" id="pieDataConfig" style="display: none;">
+            <div class="plot-controls__form-group hidden" id="pieDataConfig">
               <label class="plot-controls__label" for="pieData">Data</label>
               <select class="plot-controls__select" id="pieData">
                 <option value="grades" selected>Grade Distribution</option>
@@ -145,7 +145,7 @@
                 <p class="plot-controls__preview-text">Chart Preview</p>
                 <p class="plot-controls__preview-hint">Your visualization will appear here based on the selected configuration</p>
               </div>
-              <canvas id="plotPreview" style="display: none;"></canvas>
+              <canvas id="plotPreview" class="hidden"></canvas>
             </div>
 
             <div class="plot-controls__config-summary">
@@ -153,7 +153,7 @@
               <div class="plot-controls__summary-content" id="configSummary">
                 <div class="plot-controls__summary-item" id="summaryItemXAxis">X-Axis: <span id="summaryXAxis">semester</span></div>
                 <div class="plot-controls__summary-item" id="summaryItemYAxis">Y-Axis: <span id="summaryYAxis">gpa</span></div>
-                <div class="plot-controls__summary-item" id="summaryItemPieData" style="display: none;">Data: <span id="summaryPieData">grades</span></div>
+                <div class="plot-controls__summary-item hidden" id="summaryItemPieData">Data: <span id="summaryPieData">grades</span></div>
                 <div class="plot-controls__summary-item" id="summaryItemChartTypes">Chart Type: <span id="summaryChartTypes">line</span></div>
               </div>
             </div>
@@ -174,7 +174,6 @@
     </main>
   </div>
 
-  <script src="/js/data.js"></script>
   <script type="module" src="/js/pages/plot-control-entry.js" defer></script>
 </body>
 </html>

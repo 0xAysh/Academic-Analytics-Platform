@@ -4,7 +4,7 @@ import { initAuthGate } from './core/auth.js';
 import { initEmptyMode, initTranscriptUpload } from './core/upload.js';
 import { initAvatarDropdown } from './core/nav.js';
 import { initDashboard } from './pages/dashboard.js';
-import { loadTranscriptData } from './core/data.js';
+import { loadTranscriptData, getTranscriptData } from './core/data.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Initialize auth gate (redirects if not authenticated)
@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Wait for transcriptData to be available
   function waitForData() {
-    if (window.transcriptData) {
+    const transcriptData = getTranscriptData();
+    if (transcriptData) {
       initDashboard();
     } else {
       // Retry after a short delay if data isn't ready yet

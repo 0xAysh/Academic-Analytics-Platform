@@ -39,6 +39,12 @@ function errorHandler(err, req, res, next) {
   if (err.code === '23503') { // Foreign key violation
     return res.status(400).json({ error: 'Invalid reference', code: 'FOREIGN_KEY' });
   }
+  if (err.code === '22001' || (err.message && err.message.includes('too long'))) { // String data right truncated / value too long
+    return res.status(400).json({ 
+      error: 'One or more fields are too long. Please shorten course names, term names, or degree field.',
+      code: 'VALUE_TOO_LONG'
+    });
+  }
 
   // JWT errors
   if (err.name === 'JsonWebTokenError') {

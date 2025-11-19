@@ -108,17 +108,23 @@ function renderStrengthSummary() {
   terms.forEach(term => {
     term.courses.forEach(course => {
       const subject = course.code.split(' ')[0];
-      bySubject[subject] = bySubject[subject] || { points: 0, units: 0 };
-      bySubject[subject].points += course.points;
-      bySubject[subject].units += course.units;
+      bySubject[subject] = bySubject[subject] || { points: 0, earnedUnits: 0 };
+      bySubject[subject].points += course.points || 0;
+      // Use earnedUnits for GPA calculation, not attempted units
+      bySubject[subject].earnedUnits += course.earnedUnits || 0;
     });
   });
 
-  const performance = Object.keys(bySubject).map(subject => ({
-    subject: subject,
-    gpa: bySubject[subject].points / bySubject[subject].units,
-    percentage: ((bySubject[subject].points / bySubject[subject].units) / 4) * 100
-  })).sort((a, b) => b.percentage - a.percentage);
+  const performance = Object.keys(bySubject).map(subject => {
+    const earnedUnits = bySubject[subject].earnedUnits;
+    const points = bySubject[subject].points;
+    const gpa = earnedUnits > 0 ? points / earnedUnits : 0;
+    return {
+      subject: subject,
+      gpa: gpa,
+      percentage: (gpa / 4) * 100
+    };
+  }).sort((a, b) => b.percentage - a.percentage);
 
   const strong = performance.filter(p => p.percentage >= 85);
   const weak = performance.filter(p => p.percentage < 80);
@@ -159,7 +165,12 @@ function renderCharts() {
   if (!transcriptData || typeof transcriptData.getCompletedTerms !== 'function') return;
 
   const terms = transcriptData.getCompletedTerms();
-  const filteredTerms = terms.filter(t => t.termGPA > 0 && !t.isPlanned);
+  // Include all active terms (completed and on-going), only exclude truly planned terms
+  // On-going terms may have termGPA = 0, so we don't filter by termGPA > 0
+  const filteredTerms = terms.filter(t => {
+    // Exclude only truly planned terms (no courses)
+    return t.courses && t.courses.length > 0;
+  });
 
   // GPA Trend Chart
   const gpaCanvas = $('#gpaChart');

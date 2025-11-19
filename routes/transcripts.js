@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const { getTranscriptByUserId, saveTranscript } = require('../db/queries/transcripts');
+const { validateTranscriptData } = require('../utils/validation');
 
 // All routes require authentication
 router.use(authenticate);
@@ -44,6 +45,12 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Transcript data is required' });
     }
     
+    // Validate transcript data structure
+    const validation = validateTranscriptData(transcriptData);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+    
     const savedTranscript = await saveTranscript(req.user.userId, transcriptData);
     
     res.status(201).json({
@@ -65,6 +72,12 @@ router.put('/', async (req, res, next) => {
     
     if (!transcriptData) {
       return res.status(400).json({ error: 'Transcript data is required' });
+    }
+    
+    // Validate transcript data structure
+    const validation = validateTranscriptData(transcriptData);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
     }
     
     const savedTranscript = await saveTranscript(req.user.userId, transcriptData);

@@ -3,6 +3,11 @@
 import { $, $$, el } from '../utils/dom.js';
 import { getTranscriptData } from '../core/data.js';
 import { updateTranscript } from '../api/transcripts.js';
+import { gradeToGPA } from '../utils/grades.js';
+import { showSuccess, showError } from '../utils/notifications.js';
+import { showConfirm } from '../utils/confirm.js';
+import { sanitizeTranscriptData } from '../utils/sanitizer.js';
+import { sortTermsChronologically } from '../utils/terms.js';
 
 /**
  * Initialize edit transcript page
@@ -14,23 +19,34 @@ export function initEditTranscript() {
 
   // Check if transcript data exists
   if (!transcriptData || !transcriptData.terms || transcriptData.terms.length === 0) {
-    noDataMessage.style.display = 'block';
-    transcriptEditor.style.display = 'none';
+    noDataMessage.classList.remove('hidden');
+    transcriptEditor.classList.add('hidden');
     return;
   }
 
-  noDataMessage.style.display = 'none';
-  transcriptEditor.style.display = 'block';
+  noDataMessage.classList.add('hidden');
+  transcriptEditor.classList.remove('hidden');
 
   // Initialize form with current data
   populateStudentInfo(transcriptData);
   populateTerms(transcriptData);
+  
+  // Recalculate all term totals after initial population
+  setTimeout(() => {
+    transcriptData.terms.forEach((term, index) => {
+      recalculateTermTotals(index);
+    });
+  }, 100);
 
   // Event listeners
   $('#addTermBtn').addEventListener('click', () => addNewTerm());
   $('#saveBtn').addEventListener('click', () => saveTranscript());
-  $('#cancelBtn').addEventListener('click', () => {
-    if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+  $('#cancelBtn').addEventListener('click', async () => {
+    const confirmed = await showConfirm(
+      'Are you sure you want to cancel? All unsaved changes will be lost.',
+      'Cancel Changes'
+    );
+    if (confirmed) {
       window.location.href = '/html/index.html';
     }
   });
@@ -51,7 +67,10 @@ function populateTerms(data) {
   const container = $('#termsContainer');
   container.innerHTML = '';
 
-  data.terms.forEach((term, termIndex) => {
+  // Sort terms chronologically before displaying
+  const sortedTerms = sortTermsChronologically(data.terms || []);
+
+  sortedTerms.forEach((term, termIndex) => {
     const termCard = createTermCard(term, termIndex);
     container.appendChild(termCard);
   });
@@ -135,21 +154,55 @@ function createTermCard(term, termIndex) {
   });
   
   termFields.appendChild(createField('Term Code', `termCode_${termIndex}`, term.term || '', 'e.g., SP2024'));
-  termFields.appendChild(createField('Term Name', `termName_${termIndex}`, term.termName || '', 'e.g., Spring 2024'));
-  termFields.appendChild(createField('Term GPA', `termGPA_${termIndex}`, term.termGPA || '0', '0.00 - 4.00', 'number', '0', '4', '0.01'));
-  termFields.appendChild(createField('Credits', `termCredits_${termIndex}`, term.credits || '0', '', 'number', '0', '999', '0.5'));
-  termFields.appendChild(createField('Earned Credits', `termEarnedCredits_${termIndex}`, term.earnedCredits || '0', '', 'number', '0', '999', '0.5'));
-  termFields.appendChild(createField('Points', `termPoints_${termIndex}`, term.points || '0', '', 'number', '0', '999', '0.1'));
+  const termNameField = createField('Term Name', `termName_${termIndex}`, term.termName || '', 'e.g., Spring 2024');
+  termFields.appendChild(termNameField);
   
-  // Preserve isPlanned flag if it exists
-  if (term.isPlanned) {
-    const plannedInput = el('input', {
-      type: 'hidden',
-      id: `termIsPlanned_${termIndex}`,
-      value: 'true'
+  // Update term summary when term name changes
+  const termNameInput = $(`#termName_${termIndex}`);
+  if (termNameInput) {
+    termNameInput.addEventListener('input', () => {
+      const termCards = $$('#termsContainer > .term-item');
+      if (termCards[termIndex]) {
+        const termCard = termCards[termIndex];
+        const summary = termCard.querySelector('.term-item__summary');
+        if (summary) {
+          const termName = termNameInput.value || `Term ${termIndex + 1}`;
+          const termGPA = $(`#termGPA_${termIndex}`)?.value || '0.00';
+          const termCredits = $(`#termCredits_${termIndex}`)?.value || '0.00';
+          const courseCount = $$(`#courses_${termIndex} > .card`).length;
+          summary.innerHTML = `
+            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 4px;">${termName}</div>
+            <div style="color: var(--color-text-muted); font-size: 0.9rem;">
+              GPA: ${termGPA} | Credits: ${termCredits} | Courses: ${courseCount}
+            </div>
+          `;
+        }
+      }
     });
-    termFields.appendChild(plannedInput);
   }
+  
+  // Calculated fields (read-only, auto-updated from courses)
+  termFields.appendChild(createField('Term GPA', `termGPA_${termIndex}`, (term.termGPA || 0).toFixed(2), 'Auto-calculated', 'number', '0', '4', '0.01', true));
+  termFields.appendChild(createField('Credits', `termCredits_${termIndex}`, (term.credits || 0).toFixed(2), 'Auto-calculated', 'number', '0', '999', '0.5', true));
+  termFields.appendChild(createField('Earned Credits', `termEarnedCredits_${termIndex}`, (term.earnedCredits || 0).toFixed(2), 'Auto-calculated', 'number', '0', '999', '0.5', true));
+  termFields.appendChild(createField('Points', `termPoints_${termIndex}`, (term.points || 0).toFixed(2), 'Auto-calculated', 'number', '0', '999', '0.1', true));
+  
+  // isPlanned checkbox
+  const plannedGroup = el('div', { className: 'form__group' });
+  const plannedLabel = el('label', {
+    className: 'form__label',
+    style: 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer;'
+  });
+  const plannedCheckbox = el('input', {
+    type: 'checkbox',
+    id: `termIsPlanned_${termIndex}`,
+    checked: term.isPlanned || false,
+    onchange: () => recalculateTermTotals(termIndex)
+  });
+  plannedLabel.appendChild(plannedCheckbox);
+  plannedLabel.appendChild(el('span', { textContent: 'Planned Term (not yet completed)' }));
+  plannedGroup.appendChild(plannedLabel);
+  termFields.appendChild(plannedGroup);
   
   contentInner.appendChild(termFields);
   
@@ -226,8 +279,9 @@ function toggleTerm(termIndex, card, btn, content, chevron) {
 
 /**
  * Create a form field
+ * @param {boolean} readOnly - If true, field is read-only (calculated)
  */
-function createField(label, id, value, placeholder = '', type = 'text', min = '', max = '', step = '') {
+function createField(label, id, value, placeholder = '', type = 'text', min = '', max = '', step = '', readOnly = false) {
   const group = el('div', { className: 'form__group' });
   group.appendChild(el('label', {
     className: 'form__label',
@@ -240,7 +294,9 @@ function createField(label, id, value, placeholder = '', type = 'text', min = ''
     id: id,
     className: 'form__input',
     value: value,
-    placeholder: placeholder
+    placeholder: placeholder,
+    readOnly: readOnly,
+    style: readOnly ? 'background-color: #f3f4f6; cursor: not-allowed;' : ''
   });
   
   if (min !== '') input.min = min;
@@ -282,7 +338,37 @@ function createCourseCard(termIndex, courseIndex, course) {
   body.appendChild(createField('Units', `${courseId}_units`, course.units || '0', '', 'number', '0', '10', '0.5'));
   body.appendChild(createField('Earned Units', `${courseId}_earnedUnits`, course.earnedUnits || '0', '', 'number', '0', '10', '0.5'));
   body.appendChild(createField('Grade', `${courseId}_grade`, course.grade || '', 'e.g., A, B+, C-'));
-  body.appendChild(createField('Points', `${courseId}_points`, course.points || '0', '', 'number', '0', '20', '0.1'));
+  // Points is auto-calculated from grade and earnedUnits
+  body.appendChild(createField('Points', `${courseId}_points`, (course.points || 0).toFixed(2), 'Auto-calculated', 'number', '0', '20', '0.1', true));
+  
+  // Add event listeners to auto-calculate points and term totals
+  const codeInput = $(`#${courseId}_code`);
+  const nameInput = $(`#${courseId}_name`);
+  const unitsInput = $(`#${courseId}_units`);
+  const earnedUnitsInput = $(`#${courseId}_earnedUnits`);
+  const gradeInput = $(`#${courseId}_grade`);
+  const pointsInput = $(`#${courseId}_points`);
+  
+  // Auto-calculate points when grade or earnedUnits changes
+  const updateCoursePoints = () => {
+    const grade = gradeInput.value.trim();
+    const earnedUnits = parseFloat(earnedUnitsInput.value) || 0;
+    
+    if (grade && earnedUnits > 0) {
+      const gpaValue = gradeToGPA(grade);
+      const points = gpaValue * earnedUnits;
+      pointsInput.value = points.toFixed(2);
+    } else {
+      pointsInput.value = '0.00';
+    }
+    
+    // Recalculate term totals
+    recalculateTermTotals(termIndex);
+  };
+  
+  if (gradeInput) gradeInput.addEventListener('input', updateCoursePoints);
+  if (earnedUnitsInput) earnedUnitsInput.addEventListener('input', updateCoursePoints);
+  if (unitsInput) unitsInput.addEventListener('input', () => recalculateTermTotals(termIndex));
   
   card.appendChild(header);
   card.appendChild(body);
@@ -357,6 +443,9 @@ function addCourseToTerm(termIndex) {
   // Re-render to update UI
   populateTerms(transcriptData);
   
+  // Recalculate term totals after adding course
+  setTimeout(() => recalculateTermTotals(termIndex), 100);
+  
   // Expand the term and scroll to new course
   const container = $('#termsContainer');
   const termCard = container.children[termIndex];
@@ -390,8 +479,12 @@ function addCourseToTerm(termIndex) {
 /**
  * Delete a term
  */
-function deleteTerm(termIndex) {
-  if (!confirm('Are you sure you want to delete this term? All courses in this term will also be deleted.')) {
+async function deleteTerm(termIndex) {
+  const confirmed = await showConfirm(
+    'Are you sure you want to delete this term? All courses in this term will also be deleted.',
+    'Delete Term'
+  );
+  if (!confirmed) {
     return;
   }
   
@@ -401,14 +494,24 @@ function deleteTerm(termIndex) {
     transcriptData.terms.splice(termIndex, 1);
     // Re-render to update indices
     populateTerms(transcriptData);
+    // Recalculate all term totals after deletion
+    setTimeout(() => {
+      transcriptData.terms.forEach((term, index) => {
+        recalculateTermTotals(index);
+      });
+    }, 100);
   }
 }
 
 /**
  * Delete a course from a term
  */
-function deleteCourse(termIndex, courseIndex) {
-  if (!confirm('Are you sure you want to delete this course?')) {
+async function deleteCourse(termIndex, courseIndex) {
+  const confirmed = await showConfirm(
+    'Are you sure you want to delete this course?',
+    'Delete Course'
+  );
+  if (!confirmed) {
     return;
   }
   
@@ -418,6 +521,80 @@ function deleteCourse(termIndex, courseIndex) {
     transcriptData.terms[termIndex].courses.splice(courseIndex, 1);
     // Re-render to update indices
     populateTerms(transcriptData);
+    // Recalculate term totals after deletion
+    setTimeout(() => recalculateTermTotals(termIndex), 100);
+  }
+}
+
+/**
+ * Recalculate term totals (GPA, credits, earnedCredits, points) from courses
+ * This is called automatically when courses are added, edited, or deleted
+ */
+function recalculateTermTotals(termIndex) {
+  const transcriptData = getTranscriptData();
+  if (!transcriptData || !transcriptData.terms[termIndex]) return;
+  
+  // Collect current course data from form
+  const coursesContainer = $(`#courses_${termIndex}`);
+  if (!coursesContainer) return;
+  
+  const courseCards = $$(`#courses_${termIndex} > .card`);
+  let totalCredits = 0;
+  let totalEarnedCredits = 0;
+  let totalPoints = 0;
+  
+  courseCards.forEach((courseCard, courseIndex) => {
+    const courseId = `course_${termIndex}_${courseIndex}`;
+    const units = parseFloat($(`#${courseId}_units`)?.value || 0);
+    const earnedUnits = parseFloat($(`#${courseId}_earnedUnits`)?.value || 0);
+    const grade = $(`#${courseId}_grade`)?.value.trim();
+    
+    // Calculate points from grade and earnedUnits
+    let points = 0;
+    if (grade && earnedUnits > 0) {
+      const gpaValue = gradeToGPA(grade);
+      points = gpaValue * earnedUnits;
+      // Update points field
+      const pointsInput = $(`#${courseId}_points`);
+      if (pointsInput) {
+        pointsInput.value = points.toFixed(2);
+      }
+    }
+    
+    totalCredits += units;
+    totalEarnedCredits += earnedUnits;
+    totalPoints += points;
+  });
+  
+  // Update term totals (read-only fields)
+  const termCreditsInput = $(`#termCredits_${termIndex}`);
+  const termEarnedCreditsInput = $(`#termEarnedCredits_${termIndex}`);
+  const termPointsInput = $(`#termPoints_${termIndex}`);
+  const termGPAInput = $(`#termGPA_${termIndex}`);
+  
+  if (termCreditsInput) termCreditsInput.value = totalCredits.toFixed(2);
+  if (termEarnedCreditsInput) termEarnedCreditsInput.value = totalEarnedCredits.toFixed(2);
+  if (termPointsInput) termPointsInput.value = totalPoints.toFixed(2);
+  
+  // Calculate term GPA
+  const termGPA = totalEarnedCredits > 0 ? totalPoints / totalEarnedCredits : 0;
+  if (termGPAInput) termGPAInput.value = termGPA.toFixed(2);
+  
+  // Update term summary in header
+  const termCards = $$('#termsContainer > .term-item');
+  if (termCards[termIndex]) {
+    const termCard = termCards[termIndex];
+    const summary = termCard.querySelector('.term-item__summary');
+    if (summary) {
+      const termName = $(`#termName_${termIndex}`)?.value || `Term ${termIndex + 1}`;
+      const courseCount = courseCards.length;
+      summary.innerHTML = `
+        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 4px;">${termName}</div>
+        <div style="color: var(--color-text-muted); font-size: 0.9rem;">
+          GPA: ${termGPA.toFixed(2)} | Credits: ${totalCredits.toFixed(2)} | Courses: ${courseCount}
+        </div>
+      `;
+    }
   }
 }
 
@@ -440,18 +617,23 @@ function collectFormData() {
   const terms = [];
   const termCards = $$('#termsContainer > .term-item');
   
+  // Collect all terms first
   termCards.forEach((card, termIndex) => {
     const isPlannedInput = $(`#termIsPlanned_${termIndex}`);
+    // Recalculate term totals before collecting (in case user made changes)
+    recalculateTermTotals(termIndex);
+    
     const term = {
       term: $(`#termCode_${termIndex}`)?.value.trim() || '',
       termName: $(`#termName_${termIndex}`)?.value.trim() || '',
+      // Use calculated values from form (which are auto-updated)
       termGPA: parseFloat($(`#termGPA_${termIndex}`)?.value || 0),
       credits: parseFloat($(`#termCredits_${termIndex}`)?.value || 0),
       earnedCredits: parseFloat($(`#termEarnedCredits_${termIndex}`)?.value || 0),
       gpaUnits: parseFloat($(`#termEarnedCredits_${termIndex}`)?.value || 0), // Use earnedCredits as gpaUnits
       points: parseFloat($(`#termPoints_${termIndex}`)?.value || 0),
       honor: null,
-      isPlanned: isPlannedInput ? isPlannedInput.value === 'true' : false,
+      isPlanned: isPlannedInput ? isPlannedInput.checked : false,
       courses: []
     };
 
@@ -459,13 +641,24 @@ function collectFormData() {
     const courseCards = $$(`#courses_${termIndex} > .card`);
     courseCards.forEach((courseCard, courseIndex) => {
       const courseId = `course_${termIndex}_${courseIndex}`;
+      // Calculate points from grade and earnedUnits if not already calculated
+      let points = parseFloat($(`#${courseId}_points`)?.value || 0);
+      const grade = $(`#${courseId}_grade`)?.value.trim() || '';
+      const earnedUnits = parseFloat($(`#${courseId}_earnedUnits`)?.value || 0);
+      
+      // Recalculate points if grade and earnedUnits are available
+      if (grade && earnedUnits > 0 && points === 0) {
+        const gpaValue = gradeToGPA(grade);
+        points = gpaValue * earnedUnits;
+      }
+      
       const course = {
         code: $(`#${courseId}_code`)?.value.trim() || '',
         name: $(`#${courseId}_name`)?.value.trim() || '',
         units: parseFloat($(`#${courseId}_units`)?.value || 0),
-        earnedUnits: parseFloat($(`#${courseId}_earnedUnits`)?.value || 0),
-        grade: $(`#${courseId}_grade`)?.value.trim() || '',
-        points: parseFloat($(`#${courseId}_points`)?.value || 0)
+        earnedUnits: earnedUnits,
+        grade: grade,
+        points: parseFloat(points.toFixed(2))
       };
       term.courses.push(course);
     });
@@ -473,7 +666,9 @@ function collectFormData() {
     terms.push(term);
   });
 
-  transcriptData.terms = terms;
+  // Sort terms chronologically before saving
+  const sortedTerms = sortTermsChronologically(terms);
+  transcriptData.terms = sortedTerms;
 
   // Recalculate cumulative data
   recalculateCumulative(transcriptData);
@@ -485,18 +680,34 @@ function collectFormData() {
  * Recalculate cumulative GPA and credits
  */
 function recalculateCumulative(data) {
-  const completedTerms = data.terms.filter(t => !t.isPlanned);
+  // Include completed and on-going terms (terms with courses)
+  // Exclude only truly planned terms (no courses)
+  const activeTerms = data.terms.filter(t => {
+    if (t.isPlanned && (!t.courses || t.courses.length === 0)) {
+      return false;
+    }
+    return t.courses && t.courses.length > 0;
+  });
   
   let totalPoints = 0;
   let totalGPAUnits = 0;
   let totalCredits = 0;
   let totalEarnedCredits = 0;
+  let totalPlannedCredits = 0;
   
-  completedTerms.forEach(term => {
+  // Calculate from active terms (completed and on-going)
+  activeTerms.forEach(term => {
     totalPoints += term.points || 0;
     totalGPAUnits += term.gpaUnits || term.earnedCredits || 0;
     totalCredits += term.credits || 0;
     totalEarnedCredits += term.earnedCredits || 0;
+  });
+  
+  // Calculate planned credits separately (only truly planned terms with no courses)
+  data.terms.forEach(term => {
+    if (term.isPlanned && (!term.courses || term.courses.length === 0)) {
+      totalPlannedCredits += term.credits || 0;
+    }
   });
   
   const overallGPA = totalGPAUnits > 0 ? totalPoints / totalGPAUnits : 0;
@@ -504,11 +715,11 @@ function recalculateCumulative(data) {
   data.cumulative = {
     overallGPA: parseFloat(overallGPA.toFixed(2)),
     combinedGPA: parseFloat(overallGPA.toFixed(2)),
-    totalCredits: totalCredits,
-    totalEarnedCredits: totalEarnedCredits,
-    totalGPAUnits: totalGPAUnits,
-    totalPoints: totalPoints,
-    totalPlannedCredits: data.cumulative?.totalPlannedCredits || 0
+    totalCredits: parseFloat(totalCredits.toFixed(2)),
+    totalEarnedCredits: parseFloat(totalEarnedCredits.toFixed(2)),
+    totalGPAUnits: parseFloat(totalGPAUnits.toFixed(2)),
+    totalPoints: parseFloat(totalPoints.toFixed(2)),
+    totalPlannedCredits: parseFloat(totalPlannedCredits.toFixed(2))
   };
 }
 
@@ -518,7 +729,7 @@ function recalculateCumulative(data) {
 async function saveTranscript() {
   const updatedData = collectFormData();
   if (!updatedData) {
-    alert('Error: Could not collect form data.');
+    showError('Error: Could not collect form data.');
     return;
   }
 
@@ -534,18 +745,25 @@ async function saveTranscript() {
   saveBtn.disabled = true;
 
   try {
-    // Save via API
-    const savedTranscript = await updateTranscript(updatedData);
+    // Sanitize data before sending (remove sensitive info like name, studentId)
+    const sanitizedData = sanitizeTranscriptData(updatedData);
+    
+    // Save via API (updates DB)
+    const savedTranscript = await updateTranscript(sanitizedData);
     
     // Update global transcriptData
-    if (window.transcriptData && savedTranscript) {
-      Object.assign(window.transcriptData, savedTranscript);
+    const transcriptData = getTranscriptData();
+    if (transcriptData && savedTranscript) {
+      Object.assign(transcriptData, savedTranscript);
     }
 
-    alert('Transcript data saved successfully!');
-    window.location.href = '/html/index.html';
+    showSuccess('Transcript data saved successfully!');
+    // Redirect to dashboard which will fetch fresh data from DB
+    setTimeout(() => {
+      window.location.href = '/html/index.html';
+    }, 1500);
   } catch (error) {
-    alert('Error saving transcript: ' + error.message);
+    showError('Error saving transcript: ' + error.message);
     saveBtn.textContent = originalText;
     saveBtn.disabled = false;
   }
@@ -557,7 +775,7 @@ async function saveTranscript() {
 function validateData(data) {
   // Check terms
   if (!data.terms || data.terms.length === 0) {
-    alert('Please add at least one term.');
+    showError('Please add at least one term.');
     return false;
   }
 
@@ -565,11 +783,11 @@ function validateData(data) {
   for (let i = 0; i < data.terms.length; i++) {
     const term = data.terms[i];
     if (!term.termName.trim()) {
-      alert(`Term ${i + 1}: Please enter a term name.`);
+      showError(`Term ${i + 1}: Please enter a term name.`);
       return false;
     }
     if (term.termGPA < 0 || term.termGPA > 4) {
-      alert(`Term ${i + 1}: GPA must be between 0 and 4.`);
+      showError(`Term ${i + 1}: GPA must be between 0 and 4.`);
       return false;
     }
   }

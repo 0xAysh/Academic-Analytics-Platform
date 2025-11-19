@@ -3,7 +3,7 @@
 import { initAuthGate } from '../core/auth.js';
 import { initAvatarDropdown } from '../core/nav.js';
 import { initEditTranscript } from './edit-transcript.js';
-import { loadTranscriptData } from '../core/data.js';
+import { loadTranscriptData, getTranscriptData } from '../core/data.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Initialize auth gate (redirects if not authenticated)
@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Wait for transcriptData to be available
   function waitForData() {
-    if (window.transcriptData) {
+    const transcriptData = getTranscriptData();
+    if (transcriptData) {
       initEditTranscript();
     } else {
       // Retry after a short delay if data isn't ready yet

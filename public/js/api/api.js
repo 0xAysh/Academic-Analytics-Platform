@@ -1,5 +1,7 @@
 'use strict';
 
+import { isAuthPage, redirectToLogin } from '../utils/routing.js';
+
 const API_BASE_URL = '/api';
 
 /**
@@ -12,7 +14,8 @@ class ApiClient {
   getToken() {
     try {
       return localStorage.getItem('authToken');
-    } catch (e) {
+    } catch (error) {
+      console.error('[API] Error reading authToken from localStorage:', error);
       return null;
     }
   }
@@ -27,9 +30,18 @@ class ApiClient {
       } else {
         localStorage.removeItem('authToken');
       }
-    } catch (e) {
-      // Silently fail if localStorage is not available
+    } catch (error) {
+      console.error('[API] Error storing authToken in localStorage:', error);
     }
+  }
+
+  /**
+   * Handle 401 unauthorized response
+   * Clears token and redirects to login if not on auth page
+   */
+  handleUnauthorized() {
+    this.setToken(null);
+    redirectToLogin();
   }
 
   /**
@@ -55,18 +67,31 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          throw new Error('Invalid JSON response from server');
+        }
+      } else {
+        // Non-JSON response (e.g., HTML error page)
+        const text = await response.text();
+        // If token is invalid, clear it and redirect
+        if (response.status === 401) {
+          this.handleUnauthorized();
+        }
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
 
       if (!response.ok) {
-        // If token is invalid, clear it
+        // If token is invalid, clear it and redirect
         if (response.status === 401) {
-          this.setToken(null);
-          // Redirect to login if not already on auth page
-          const path = window.location.pathname || '';
-          const isAuthPage = /\/html\/(login|signup)\.html$/.test(path);
-          if (!isAuthPage) {
-            window.location.href = '/html/login.html';
-          }
+          this.handleUnauthorized();
         }
         throw new Error(data.error || 'Request failed');
       }

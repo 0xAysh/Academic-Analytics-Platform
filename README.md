@@ -74,23 +74,32 @@ You will add more functionality (Back‑End JavaScript, database, APIs) in later
 ## Project Organization
 
 * **Directory structure:**
-  Group related files into subdirectories for clarity. Example:
+  Group related files into subdirectories for clarity. Current structure:
 
   ```
   public/
-    index.html
-    script.js <--- Front End JS goes here (under public/)
-    products/
-      item1.html
-      item2.html
-    css/
-      style.css
-    images/
-      logo.png
-      products/
-  README.md
-  server.js <--- Back End JS goes here (outside of public/)
+    html/          # HTML pages
+    js/            # Front-End JavaScript
+    styles/        # CSS files
+  db/
+    pool.js        # PostgreSQL connection pool
+    queries/       # Database query functions
+    migrations/    # Database schema migrations
+  routes/          # Express route handlers
+  middleware/      # Express middleware
+  utils/           # Utility functions
+  server.js        # Express server (Back-End entry point)
+  .env             # Environment variables (not in git)
+  .env.example     # Environment variables template
+  backup.tar       # Database backup (exported)
   ```
+
+* **Back-End files are outside `public/`:**
+  - `server.js` - Express server
+  - `db/pool.js` - Database connection
+  - `routes/` - API routes
+  - `middleware/` - Express middleware
+  - `utils/` - Server-side utilities
 
 * **Meaningful names:**
   Use clear, descriptive file names. URLs should make sense to the user.

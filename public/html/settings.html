@@ -84,24 +84,29 @@
               <h2 class="card__title">Account Information</h2>
             </div>
             <div class="card__body">
-              <div class="grid grid--3cols">
+              <div class="grid grid--2cols">
                 <div class="info-tile">
                   <div class="info-tile__label">Email</div>
-                  <div class="info-tile__value" id="infoEmail">student@university.edu</div>
+                  <div class="info-tile__value" id="infoEmail">Loading...</div>
                 </div>
                 <div class="info-tile">
-                  <div class="info-tile__label">Major</div>
-                  <div class="info-tile__value" id="infoMajor">Computer Science</div>
-                </div>
-                <div class="info-tile">
-                  <div class="info-tile__label">Year</div>
-                  <div class="info-tile__value" id="infoYear">Junior (Year 3)</div>
+                  <div class="info-tile__label">Name</div>
+                  <div class="info-tile__value" id="infoName">Loading...</div>
                 </div>
               </div>
 
-              <div class="actions-row">
-                <button class="btn btn--secondary" id="editProfileBtn">Edit Profile Information</button>
-                <button class="btn btn--primary" id="saveChangesBtn">Save Changes</button>
+              <div class="actions-row mt-1-5">
+                <button class="btn btn--secondary" id="editProfileBtn">Edit Profile</button>
+                <button class="btn btn--primary hidden" id="saveChangesBtn">Save Changes</button>
+                <button class="btn btn--secondary hidden" id="cancelEditBtn">Cancel</button>
+              </div>
+              
+              <!-- Password confirmation modal for email change -->
+              <div id="passwordConfirmModal" class="hidden password-confirm-modal">
+                <div class="form__group">
+                  <label class="form__label" for="emailChangePassword">Enter your password to confirm email change</label>
+                  <input class="form__input" type="password" id="emailChangePassword" placeholder="Enter your password">
+                </div>
               </div>
             </div>
           </div>
@@ -135,9 +140,9 @@
     </main>
   </div>
 
-  <script src="/js/data.js"></script>
   <script type="module" src="/js/pages/settings-entry.js" defer></script>
 </body>
 </html>
+
 
 

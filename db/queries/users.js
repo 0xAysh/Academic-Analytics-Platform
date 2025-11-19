@@ -1,6 +1,6 @@
 'use strict';
 
-const pool = require('../../config/database');
+const pool = require('../pool');
 
 /**
  * Create a new user
@@ -41,9 +41,101 @@ async function getUserById(userId) {
   return result.rows[0] || null;
 }
 
+/**
+ * Update user profile (email and/or name)
+ * @param {number} userId - User ID
+ * @param {string} email - New email (optional)
+ * @param {string} name - New name (optional)
+ * @returns {Promise<object>} Updated user (without password)
+ * @throws {Error} If update fails or email already exists
+ */
+async function updateUserProfile(userId, email, name) {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // If email is being changed, check if it already exists
+    if (email) {
+      const existingUser = await getUserByEmail(email.trim().toLowerCase());
+      if (existingUser && existingUser.id !== userId) {
+        await client.query('ROLLBACK');
+        throw new Error('Email already exists');
+      }
+    }
+    
+    // Build update query dynamically based on what's being updated
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+    
+    if (email) {
+      updates.push(`email = $${paramCount}`);
+      values.push(email.trim().toLowerCase());
+      paramCount++;
+    }
+    
+    if (name !== undefined) {
+      updates.push(`name = $${paramCount}`);
+      values.push(name ? name.trim() : null);
+      paramCount++;
+    }
+    
+    if (updates.length === 0) {
+      await client.query('ROLLBACK');
+      throw new Error('No fields to update');
+    }
+    
+    values.push(userId);
+    const query = `
+      UPDATE users 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING id, email, name
+    `;
+    
+    const result = await client.query(query, values);
+    
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      throw new Error('User not found');
+    }
+    
+    await client.query('COMMIT');
+    return result.rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Update user password
+ * @param {number} userId - User ID
+ * @param {string} newPasswordHash - New hashed password
+ * @returns {Promise<void>}
+ * @throws {Error} If update fails
+ */
+async function updateUserPassword(userId, newPasswordHash) {
+  const query = `
+    UPDATE users 
+    SET password_hash = $1
+    WHERE id = $2
+  `;
+  const result = await pool.query(query, [newPasswordHash, userId]);
+  
+  if (result.rowCount === 0) {
+    throw new Error('User not found');
+  }
+}
+
 module.exports = {
   createUser,
   getUserByEmail,
-  getUserById
+  getUserById,
+  updateUserProfile,
+  updateUserPassword
 };
 

@@ -11,6 +11,12 @@
   <link rel="stylesheet" href="/styles/layout.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Configure PDF.js worker to fix deprecation warning
+    if (typeof window !== 'undefined' && window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
   <script type="module" src="/js/main.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
@@ -81,16 +87,20 @@
 
     <main class="main">
       <section class="upload">
-        <div class="upload__card">
+        <div class="upload__card" id="uploadCard">
           <div class="upload__icon" aria-hidden="true">📤</div>
           <div class="upload__content">
             <h3 class="upload__title">Upload Transcript</h3>
             <p class="upload__desc">Upload your academic transcript to automatically populate your course data and visualize your progress.</p>
-            <label class="upload__btn">
+            <label class="upload__btn" id="uploadBtnLabel">
               <input type="file" id="transcriptFile" accept=".pdf,.json,.txt" hidden>
-              <span>Choose File</span>
+              <span id="uploadBtnText">Choose File</span>
             </label>
             <span class="upload__file-name" id="uploadFileName"></span>
+          </div>
+          <div class="upload__loading hidden" id="uploadLoading">
+            <div class="upload__spinner"></div>
+            <div class="upload__loading-text" id="uploadLoadingText">Processing...</div>
           </div>
         </div>
       </section>
@@ -192,6 +202,5 @@
     </main>
   </div>
 
-  <script src="/js/data.js"></script>
 </body>
 </html>

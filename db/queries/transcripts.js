@@ -1,6 +1,19 @@
 'use strict';
 
-const pool = require('../../config/database');
+const pool = require('../pool');
+
+/**
+ * Truncate string to specified length
+ * @param {string} str - String to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated string
+ */
+function truncateString(str, maxLength) {
+  if (typeof str !== 'string') {
+    return '';
+  }
+  return str.substring(0, maxLength);
+}
 
 /**
  * Get transcript by user ID with nested terms and courses
@@ -42,20 +55,32 @@ async function getTranscriptByUserId(userId) {
     }
     
     // Calculate cumulative stats
-    const completedTerms = terms.filter(t => !t.is_planned);
+    // Include completed and on-going terms (terms with courses) for GPA and earned credits
+    // Exclude only truly planned terms (no courses)
+    const activeTerms = terms.filter(t => {
+      // Exclude only truly planned terms (no courses)
+      if (t.is_planned && (!t.courses || t.courses.length === 0)) {
+        return false;
+      }
+      // Include all terms that have courses (completed or on-going)
+      return t.courses && t.courses.length > 0;
+    });
+    
     let totalPoints = 0;
     let totalEarnedCredits = 0;
     let totalCredits = 0;
     let totalPlannedCredits = 0;
     
-    completedTerms.forEach(term => {
+    // Calculate from active terms (completed and on-going)
+    activeTerms.forEach(term => {
       totalPoints += parseFloat(term.points || 0);
       totalEarnedCredits += parseFloat(term.earned_credits || 0);
       totalCredits += parseFloat(term.credits || 0);
     });
     
+    // Calculate planned credits separately (only truly planned terms with no courses)
     terms.forEach(term => {
-      if (term.is_planned) {
+      if (term.is_planned && (!term.courses || term.courses.length === 0)) {
         totalPlannedCredits += parseFloat(term.credits || 0);
       }
     });
@@ -107,8 +132,9 @@ async function getTranscriptByUserId(userId) {
 /**
  * Save or update transcript with nested terms and courses
  * @param {number} userId - User ID
- * @param {object} transcriptData - Transcript data object
- * @returns {Promise<object>} Saved transcript
+ * @param {object} transcriptData - Transcript data object with studentInfo, terms, and courses
+ * @returns {Promise<object>} Saved transcript object
+ * @throws {Error} If database operation fails
  */
 async function saveTranscript(userId, transcriptData) {
   const client = await pool.connect();
@@ -126,19 +152,22 @@ async function saveTranscript(userId, transcriptData) {
       // Update existing transcript
       transcriptId = existingResult.rows[0].id;
       const updateQuery = 'UPDATE transcripts SET degree = $1 WHERE id = $2';
-      await client.query(updateQuery, [transcriptData.studentInfo?.degree || '', transcriptId]);
+      const degree = truncateString(transcriptData.studentInfo?.degree || '', 255);
+      await client.query(updateQuery, [degree, transcriptId]);
       
       // Delete existing terms and courses (cascade will handle courses)
       await client.query('DELETE FROM terms WHERE transcript_id = $1', [transcriptId]);
     } else {
       // Create new transcript
       const insertQuery = 'INSERT INTO transcripts (user_id, degree) VALUES ($1, $2) RETURNING id';
-      const insertResult = await client.query(insertQuery, [userId, transcriptData.studentInfo?.degree || '']);
+      const degree = truncateString(transcriptData.studentInfo?.degree || '', 255);
+      const insertResult = await client.query(insertQuery, [userId, degree]);
       transcriptId = insertResult.rows[0].id;
     }
     
     // Insert terms and courses
     const terms = transcriptData.terms || [];
+    
     for (const term of terms) {
       const termQuery = `
         INSERT INTO terms (transcript_id, term_code, term_name, term_gpa, credits, earned_credits, points, is_planned)
@@ -147,19 +176,20 @@ async function saveTranscript(userId, transcriptData) {
       `;
       const termResult = await client.query(termQuery, [
         transcriptId,
-        term.term || term.termCode || '',
-        term.termName || '',
-        term.termGPA || 0,
-        term.credits || 0,
-        term.earnedCredits || 0,
-        term.points || 0,
-        term.isPlanned || false
+        truncateString(term.term || term.termCode || '', 50),
+        truncateString(term.termName || '', 255),
+        parseFloat(term.termGPA) || 0,
+        parseFloat(term.credits) || 0,
+        parseFloat(term.earnedCredits) || 0,
+        parseFloat(term.points) || 0,
+        Boolean(term.isPlanned)
       ]);
       
       const termId = termResult.rows[0].id;
       
       // Insert courses for this term
       const courses = term.courses || [];
+      
       for (const course of courses) {
         const courseQuery = `
           INSERT INTO courses (term_id, code, name, units, earned_units, grade, points)
@@ -167,12 +197,12 @@ async function saveTranscript(userId, transcriptData) {
         `;
         await client.query(courseQuery, [
           termId,
-          course.code || '',
-          course.name || '',
-          course.units || 0,
-          course.earnedUnits || 0,
-          course.grade || '',
-          course.points || 0
+          truncateString(course.code || '', 50),
+          truncateString(course.name || '', 255),
+          parseFloat(course.units) || 0,
+          parseFloat(course.earnedUnits) || 0,
+          truncateString(course.grade || '', 10),
+          parseFloat(course.points) || 0
         ]);
       }
     }

@@ -80,14 +80,14 @@
             <p class="welcome__subtitle">Modify your academic transcript data</p>
       </section>
 
-      <div id="noDataMessage" class="card" style="display: none;">
+      <div id="noDataMessage" class="card hidden">
         <p>No transcript data available. Please upload a transcript first.</p>
         <a href="/html/index.html" class="btn btn--primary">Go to Dashboard</a>
       </div>
 
-      <div id="transcriptEditor" style="display: none;">
+      <div id="transcriptEditor" class="hidden">
         <!-- Student Information Section -->
-        <section class="card" style="margin-bottom: 2rem;">
+        <section class="card mb-2">
           <div class="card__header">
             <h2 class="card__title">Student Information</h2>
           </div>
@@ -100,8 +100,8 @@
         </section>
 
         <!-- Terms Section -->
-        <section class="card" style="margin-bottom: 2rem;">
-          <div class="card__header" style="display: flex; justify-content: space-between; align-items: center;">
+        <section class="card mb-2">
+          <div class="card__header flex-between">
             <h2 class="card__title">Academic Terms</h2>
             <button id="addTermBtn" class="btn btn--primary">Add Term</button>
           </div>
@@ -111,7 +111,7 @@
         </section>
 
         <!-- Save Button -->
-        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+        <div class="flex-end mt-2">
           <button id="cancelBtn" class="btn btn--secondary">Cancel</button>
           <button id="saveBtn" class="btn btn--primary">Save Changes</button>
         </div>
@@ -119,7 +119,6 @@
     </main>
   </div>
 
-  <script src="/js/data.js"></script>
   <script type="module" src="/js/pages/edit-transcript-entry.js" defer></script>
 </body>
 </html>
