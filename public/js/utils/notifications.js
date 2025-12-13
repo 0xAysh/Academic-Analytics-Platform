@@ -1,15 +1,7 @@
 'use strict';
 
-/**
- * Notification/Toast system for displaying messages to users
- * Replaces browser alert() calls with inline UI messages
- */
-
 let notificationContainer = null;
 
-/**
- * Initialize notification container
- */
 function initNotificationContainer() {
   if (notificationContainer) return notificationContainer;
   
@@ -21,10 +13,9 @@ function initNotificationContainer() {
 }
 
 /**
- * Show a notification message
- * @param {string} message - Message to display
- * @param {string} type - 'success', 'error', 'warning', or 'info'
- * @param {number} duration - Duration in milliseconds (default: 5000)
+ * @param {string} message
+ * @param {string} type
+ * @param {number} duration
  */
 export function showNotification(message, type = 'info', duration = 5000) {
   const container = initNotificationContainer();
@@ -56,7 +47,6 @@ export function showNotification(message, type = 'info', duration = 5000) {
   notification.appendChild(closeBtn);
   container.appendChild(notification);
   
-  // Auto-remove after duration
   if (duration > 0) {
     setTimeout(removeNotification, duration);
   }
@@ -65,31 +55,33 @@ export function showNotification(message, type = 'info', duration = 5000) {
 }
 
 /**
- * Show success notification
+ * @param {string} message
+ * @param {number} duration
  */
 export function showSuccess(message, duration = 5000) {
   return showNotification(message, 'success', duration);
 }
 
 /**
- * Show error notification
+ * @param {string} message
+ * @param {number} duration
  */
 export function showError(message, duration = 7000) {
   return showNotification(message, 'error', duration);
 }
 
 /**
- * Show warning notification
+ * @param {string} message
+ * @param {number} duration
  */
 export function showWarning(message, duration = 6000) {
   return showNotification(message, 'warning', duration);
 }
 
 /**
- * Show info notification
+ * @param {string} message
+ * @param {number} duration
  */
 export function showInfo(message, duration = 5000) {
   return showNotification(message, 'info', duration);
 }
-
-

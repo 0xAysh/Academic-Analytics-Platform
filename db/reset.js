@@ -1,15 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-/**
- * Database Reset Script
- * Drops all tables and recreates them from migration
- * 
- * Usage: node db/reset.js
- * 
- * WARNING: This will delete all data in the database!
- */
-
 require('dotenv').config();
 const pool = require('./pool');
 const fs = require('fs');
@@ -21,16 +12,15 @@ async function resetDatabase() {
   try {
     console.log('\n🔄 Starting database reset...\n');
     
-    // Start transaction
     await client.query('BEGIN');
     
     console.log('Dropping existing tables...');
     
-    // Drop tables in reverse order of dependencies (children first, then parents)
     const dropQueries = [
       'DROP TABLE IF EXISTS courses CASCADE',
       'DROP TABLE IF EXISTS terms CASCADE',
       'DROP TABLE IF EXISTS transcripts CASCADE',
+      'DROP TABLE IF EXISTS password_reset_tokens CASCADE',
       'DROP TABLE IF EXISTS users CASCADE'
     ];
     
@@ -42,17 +32,21 @@ async function resetDatabase() {
     
     console.log('\nCreating tables from migration...');
     
-    // Read and execute migration file
-    const migrationPath = path.join(__dirname, 'migrations', '001_initial_schema.sql');
-    const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+    const migrations = ['001_initial_schema.sql', '002_password_reset_tokens.sql'];
     
-    // Execute migration
-    await client.query(migrationSQL);
-    console.log('  ✓ Executed migration: 001_initial_schema.sql');
+    for (const migrationFile of migrations) {
+      const migrationPath = path.join(__dirname, 'migrations', migrationFile);
+      if (fs.existsSync(migrationPath)) {
+        const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+        await client.query(migrationSQL);
+        console.log(`  ✓ Executed migration: ${migrationFile}`);
+      } else {
+        console.log(`  ⚠ Migration file not found: ${migrationFile}`);
+      }
+    }
     
-    // Verify tables were created
     console.log('\nVerifying tables...');
-    const tables = ['users', 'transcripts', 'terms', 'courses'];
+    const tables = ['users', 'transcripts', 'terms', 'courses', 'password_reset_tokens'];
     for (const table of tables) {
       const result = await client.query(`
         SELECT EXISTS (
@@ -69,7 +63,6 @@ async function resetDatabase() {
       }
     }
     
-    // Commit transaction
     await client.query('COMMIT');
     
     console.log('\n✅ Database reset completed successfully!\n');
@@ -77,7 +70,6 @@ async function resetDatabase() {
     console.log('The database is now ready for fresh data.\n');
     
   } catch (error) {
-    // Rollback on error
     await client.query('ROLLBACK');
     console.error('\n❌ Error resetting database:', error.message);
     console.error('  Stack:', error.stack);
@@ -88,7 +80,6 @@ async function resetDatabase() {
   }
 }
 
-// Run the script
 resetDatabase()
   .then(() => {
     process.exit(0);
@@ -97,4 +88,3 @@ resetDatabase()
     console.error('Failed to reset database:', error);
     process.exit(1);
   });
-

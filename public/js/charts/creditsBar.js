@@ -1,10 +1,9 @@
 'use strict';
 
 /**
- * Render credits per term bar chart
- * @param {HTMLCanvasElement} container - Canvas element to render chart
- * @param {Array<{termName: string, credits: number}>} terms - Array of term data
- * @returns {Chart|null} Chart instance or null if unable to render
+ * @param {HTMLCanvasElement} container
+ * @param {Array<{termName: string, credits: number}>} terms
+ * @returns {Chart|null}
  */
 export function renderCreditsBar(container, terms) {
   if (!container || !window.Chart) return null;
@@ -50,4 +49,3 @@ export function renderCreditsBar(container, terms) {
     }
   });
 }
-

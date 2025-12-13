@@ -4,17 +4,16 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = '4h'; // 4 hours
+const JWT_EXPIRES_IN = '4h';
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
 }
 
 /**
- * Generate JWT token for user
- * @param {number} userId - User ID
- * @param {string} email - User email
- * @returns {string} JWT token
+ * @param {number} userId
+ * @param {string} email
+ * @returns {string}
  */
 function generateToken(userId, email) {
   return jwt.sign(
@@ -25,10 +24,8 @@ function generateToken(userId, email) {
 }
 
 /**
- * Verify JWT token
- * @param {string} token - JWT token
- * @returns {object} Decoded token payload
- * @throws {Error} If token is invalid or expired
+ * @param {string} token
+ * @returns {object}
  */
 function verifyToken(token) {
   if (!token || typeof token !== 'string') {
@@ -38,7 +35,6 @@ function verifyToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET);
   } catch (error) {
-    // Provide more specific error messages
     if (error.name === 'TokenExpiredError') {
       throw new Error('Token has expired. Please log in again.');
     } else if (error.name === 'JsonWebTokenError') {
@@ -52,17 +48,14 @@ function verifyToken(token) {
 }
 
 /**
- * Extract token from Authorization header
- * Case-insensitive check for "Bearer" prefix
- * @param {string} authHeader - Authorization header value
- * @returns {string|null} Token or null
+ * @param {string} authHeader
+ * @returns {string|null}
  */
 function extractTokenFromHeader(authHeader) {
   if (!authHeader || typeof authHeader !== 'string') {
     return null;
   }
   
-  // Case-insensitive check for "Bearer " prefix
   const bearerPrefix = 'Bearer ';
   const lowerHeader = authHeader.toLowerCase();
   const lowerPrefix = bearerPrefix.toLowerCase();
@@ -71,7 +64,6 @@ function extractTokenFromHeader(authHeader) {
     return null;
   }
   
-  // Extract token (preserve original case of token itself)
   return authHeader.substring(bearerPrefix.length);
 }
 
@@ -80,4 +72,3 @@ module.exports = {
   verifyToken,
   extractTokenFromHeader
 };
-

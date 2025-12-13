@@ -8,14 +8,10 @@ import { renderCreditsBar } from '../charts/creditsBar.js';
 import { gradeToGPA, getGradeColor } from '../utils/grades.js';
 import { debounce } from '../utils/dom.js';
 
-// Chart instances for resize handling
 let gpaChartInstance = null;
 let creditsChartInstance = null;
 let gradeChartInstance = null;
 
-/**
- * Load dashboard metrics into the UI
- */
 function loadDashboardMetrics() {
   const transcriptData = getTranscriptData();
   if (!transcriptData) return;
@@ -45,9 +41,6 @@ function loadDashboardMetrics() {
   }
 }
 
-/**
- * Render course breakdown table
- */
 function renderCourseBreakdown() {
   const tbody = $('#courseTableBody');
   if (!tbody) return;
@@ -88,9 +81,6 @@ function renderCourseBreakdown() {
   });
 }
 
-/**
- * Render strength summary (strong and improvement areas)
- */
 function renderStrengthSummary() {
   const strongContainer = $('#strongAreas');
   const improvementContainer = $('#improvementAreas');
@@ -110,7 +100,6 @@ function renderStrengthSummary() {
       const subject = course.code.split(' ')[0];
       bySubject[subject] = bySubject[subject] || { points: 0, earnedUnits: 0 };
       bySubject[subject].points += course.points || 0;
-      // Use earnedUnits for GPA calculation, not attempted units
       bySubject[subject].earnedUnits += course.earnedUnits || 0;
     });
   });
@@ -157,22 +146,15 @@ function renderStrengthSummary() {
   }
 }
 
-/**
- * Render all charts
- */
 function renderCharts() {
   const transcriptData = getTranscriptData();
   if (!transcriptData || typeof transcriptData.getCompletedTerms !== 'function') return;
 
   const terms = transcriptData.getCompletedTerms();
-  // Include all active terms (completed and on-going), only exclude truly planned terms
-  // On-going terms may have termGPA = 0, so we don't filter by termGPA > 0
   const filteredTerms = terms.filter(t => {
-    // Exclude only truly planned terms (no courses)
     return t.courses && t.courses.length > 0;
   });
 
-  // GPA Trend Chart
   const gpaCanvas = $('#gpaChart');
   if (gpaCanvas) {
     if (gpaChartInstance) {
@@ -181,7 +163,6 @@ function renderCharts() {
     gpaChartInstance = renderGpaTrend(gpaCanvas, filteredTerms);
   }
 
-  // Credits Bar Chart
   const creditsCanvas = $('#creditsChart');
   if (creditsCanvas) {
     if (creditsChartInstance) {
@@ -190,7 +171,6 @@ function renderCharts() {
     creditsChartInstance = renderCreditsBar(creditsCanvas, terms);
   }
 
-  // Grade Distribution Pie Chart
   const gradeCanvas = $('#gradeChart');
   if (gradeCanvas) {
     const dist = { A: 0, B: 0, C: 0, D: 0, F: 0 };
@@ -207,27 +187,21 @@ function renderCharts() {
   }
 }
 
-/**
- * Handle window resize - redraw charts
- */
 const handleResize = debounce(() => {
   renderCharts();
 }, 250);
 
 /**
- * Initialize dashboard page
+ * @returns {void}
  */
 export function initDashboard() {
-  // Load metrics
   loadDashboardMetrics();
 
-  // Render charts after a short delay to ensure DOM is ready
   setTimeout(() => {
     renderCharts();
     renderCourseBreakdown();
     renderStrengthSummary();
   }, 100);
 
-  // Handle window resize
   window.addEventListener('resize', handleResize);
 }

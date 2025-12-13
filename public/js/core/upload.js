@@ -8,8 +8,7 @@ import { showError, showSuccess } from '../utils/notifications.js';
 import { getTranscriptData } from './data.js';
 
 /**
- * Initialize transcript upload handler
- * Parses file client-side, sanitizes data, and sends to API
+ * @returns {void}
  */
 export function initTranscriptUpload() {
   const input = $('#transcriptFile');
@@ -24,7 +23,6 @@ export function initTranscriptUpload() {
     console.error('Transcript file input not found');
     return;
   }
-  
   
   function showLoading(message = 'Processing...') {
     if (loadingEl) {
@@ -63,18 +61,16 @@ export function initTranscriptUpload() {
       return;
     }
     
-    // Validate file size (10MB limit)
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       showError('File size exceeds 10MB limit. Please upload a smaller file.');
-      input.value = ''; // Clear the input
+      input.value = '';
       if (nameEl) {
         nameEl.textContent = '';
       }
       return;
     }
     
-    // Validate file type
     const allowedTypes = ['application/pdf', 'text/plain', 'application/json'];
     const allowedExtensions = ['.pdf', '.txt', '.json'];
     const fileName = file.name.toLowerCase();
@@ -83,24 +79,21 @@ export function initTranscriptUpload() {
     
     if (!isValidType) {
       showError('Invalid file type. Please upload a PDF, text, or JSON file.');
-      input.value = ''; // Clear the input
+      input.value = '';
       if (nameEl) {
         nameEl.textContent = '';
       }
       return;
     }
     
-    // Show file name
     if (nameEl) {
       nameEl.textContent = file.name;
       nameEl.style.color = '#2986ff';
     }
     
-    // Show loading UI
     showLoading('Reading file...');
     
     try {
-      // Parse the file
       let parsedData;
       
       if (file.type === 'application/json' || file.name.endsWith('.json')) {
@@ -110,7 +103,6 @@ export function initTranscriptUpload() {
       } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
         if (loadingTextEl) loadingTextEl.textContent = 'Extracting text from PDF...';
         parsedData = await parseTranscript(file);
-        // PDF parser is basic - warn user if no terms found
         if (!parsedData.terms || parsedData.terms.length === 0) {
           console.warn('PDF parser returned no terms. The parser is basic and may need manual data entry.');
         }
@@ -119,15 +111,12 @@ export function initTranscriptUpload() {
         parsedData = await parseTranscript(file);
       }
       
-      // Sanitize data (remove sensitive info)
       if (loadingTextEl) loadingTextEl.textContent = 'Sanitizing data...';
       const sanitizedData = sanitizeTranscriptData(parsedData);
       
-      // Send to API (saves to DB)
       if (loadingTextEl) loadingTextEl.textContent = 'Saving to database...';
       await saveTranscript(sanitizedData);
       
-      // Show success message
       if (loadingTextEl) loadingTextEl.textContent = 'Upload successful!';
       if (nameEl) {
         nameEl.textContent = `${file.name} - Uploaded successfully!`;
@@ -135,7 +124,6 @@ export function initTranscriptUpload() {
       }
       showSuccess('Transcript uploaded successfully!');
       
-      // Reload page to fetch fresh data from DB and display it
       setTimeout(() => {
         if (loadingTextEl) loadingTextEl.textContent = 'Reloading page...';
         setTimeout(() => {
@@ -146,13 +134,11 @@ export function initTranscriptUpload() {
     } catch (error) {
       console.error('Upload error:', error);
       
-      // Don't hide loading immediately - show error in loading UI first
       if (loadingTextEl) {
         loadingTextEl.textContent = `Error: ${error.message}`;
         loadingTextEl.style.color = '#ef4444';
       }
       
-      // Wait a moment so user can see the error
       setTimeout(() => {
         hideLoading();
         showError(`Error uploading transcript: ${error.message}. Check the console for more details.`);
@@ -162,7 +148,6 @@ export function initTranscriptUpload() {
           nameEl.style.color = '#ef4444';
         }
         
-        // Clear the input so user can try again
         input.value = '';
       }, 2000);
     }
@@ -170,8 +155,7 @@ export function initTranscriptUpload() {
 }
 
 /**
- * Initialize empty mode based on transcript data availability
- * Hides data until transcript is uploaded
+ * @returns {void}
  */
 export function initEmptyMode() {
   function setupEmptyMode() {
@@ -180,7 +164,6 @@ export function initEmptyMode() {
       
       const transcriptData = getTranscriptData();
       
-      // Check if transcript data exists and has terms
       const hasData = transcriptData && 
                      transcriptData.terms && 
                      transcriptData.terms.length > 0;
@@ -201,12 +184,10 @@ export function initEmptyMode() {
     }
   }
   
-  // Wait for transcriptData to be available
   const transcriptData = getTranscriptData();
   if (transcriptData) {
     setupEmptyMode();
   } else {
-    // Retry after a short delay if data isn't ready yet
     setTimeout(() => {
       const retryData = getTranscriptData();
       if (retryData) {
@@ -215,4 +196,3 @@ export function initEmptyMode() {
     }, 100);
   }
 }
-

@@ -1,20 +1,11 @@
 'use strict';
 
-/**
- * Confirmation dialog system
- * Replaces browser confirm() calls with inline UI dialogs
- */
-
 let dialogOverlay = null;
 let dialogContainer = null;
 
-/**
- * Initialize dialog elements
- */
 function initDialog() {
   if (dialogOverlay) return;
   
-  // Create overlay
   dialogOverlay = document.createElement('div');
   dialogOverlay.id = 'confirmDialogOverlay';
   dialogOverlay.style.cssText = `
@@ -31,7 +22,6 @@ function initDialog() {
     animation: fadeIn 0.2s ease-out;
   `;
   
-  // Create dialog container
   dialogContainer = document.createElement('div');
   dialogContainer.id = 'confirmDialog';
   dialogContainer.style.cssText = `
@@ -47,7 +37,6 @@ function initDialog() {
   dialogOverlay.appendChild(dialogContainer);
   document.body.appendChild(dialogOverlay);
   
-  // Add CSS animations
   if (!document.getElementById('confirmDialogStyles')) {
     const style = document.createElement('style');
     style.id = 'confirmDialogStyles';
@@ -73,19 +62,16 @@ function initDialog() {
 }
 
 /**
- * Show confirmation dialog
- * @param {string} message - Confirmation message
- * @param {string} title - Dialog title (optional)
- * @returns {Promise<boolean>} - Resolves to true if confirmed, false if cancelled
+ * @param {string} message
+ * @param {string} title
+ * @returns {Promise<boolean>}
  */
 export function showConfirm(message, title = 'Confirm') {
   return new Promise((resolve) => {
     initDialog();
     
-    // Clear previous content
     dialogContainer.innerHTML = '';
     
-    // Title
     const titleEl = document.createElement('h3');
     titleEl.textContent = title;
     titleEl.style.cssText = `
@@ -95,7 +81,6 @@ export function showConfirm(message, title = 'Confirm') {
       color: #111827;
     `;
     
-    // Message
     const messageEl = document.createElement('p');
     messageEl.textContent = message;
     messageEl.style.cssText = `
@@ -105,7 +90,6 @@ export function showConfirm(message, title = 'Confirm') {
       color: #4b5563;
     `;
     
-    // Buttons container
     const buttonsContainer = document.createElement('div');
     buttonsContainer.style.cssText = `
       display: flex;
@@ -113,7 +97,6 @@ export function showConfirm(message, title = 'Confirm') {
       justify-content: flex-end;
     `;
     
-    // Cancel button
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Cancel';
     cancelBtn.className = 'btn btn--secondary';
@@ -136,7 +119,6 @@ export function showConfirm(message, title = 'Confirm') {
       cancelBtn.style.borderColor = '#d1d5db';
     };
     
-    // Confirm button
     const confirmBtn = document.createElement('button');
     confirmBtn.textContent = 'Confirm';
     confirmBtn.className = 'btn btn--primary';
@@ -161,14 +143,12 @@ export function showConfirm(message, title = 'Confirm') {
     cancelBtn.addEventListener('click', () => closeDialog(false));
     confirmBtn.addEventListener('click', () => closeDialog(true));
     
-    // Close on overlay click (outside dialog)
     dialogOverlay.addEventListener('click', (e) => {
       if (e.target === dialogOverlay) {
         closeDialog(false);
       }
     });
     
-    // Close on Escape key
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         closeDialog(false);
@@ -184,11 +164,8 @@ export function showConfirm(message, title = 'Confirm') {
     dialogContainer.appendChild(messageEl);
     dialogContainer.appendChild(buttonsContainer);
     
-    // Show dialog
     dialogOverlay.style.display = 'flex';
     
-    // Focus confirm button for keyboard navigation
     setTimeout(() => confirmBtn.focus(), 100);
   });
 }
-

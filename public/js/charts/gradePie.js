@@ -1,10 +1,9 @@
 'use strict';
 
 /**
- * Render grade distribution pie chart
- * @param {HTMLCanvasElement} container - Canvas element to render chart
- * @param {{A:number,B:number,C:number,D:number,F:number}} dist - Grade distribution object
- * @returns {Chart|null} Chart instance or null if unable to render
+ * @param {HTMLCanvasElement} container
+ * @param {{A:number,B:number,C:number,D:number,F:number}} dist
+ * @returns {Chart|null}
  */
 export function renderGradePie(container, dist) {
   if (!container || !window.Chart) return null;
@@ -16,10 +15,8 @@ export function renderGradePie(container, dist) {
   
   if (total === 0) return null;
 
-  // Calculate percentages for all grades (including 0%)
   const allPercentages = data.map(count => Math.round((count / total) * 100));
   
-  // Filter out grades with zero count for chart data; keep order A..F
   const filtered = labels.map((l, i) => ({
     label: l,
     count: data[i],
@@ -52,7 +49,6 @@ export function renderGradePie(container, dist) {
           position: 'bottom',
           labels: {
             generateLabels: () => {
-              // Show all grades in legend, even if 0%
               return labels.map((label, i) => {
                 const percentage = allPercentages[i] || 0;
                 return {
@@ -99,5 +95,3 @@ export function renderGradePie(container, dist) {
     }
   });
 }
-
-

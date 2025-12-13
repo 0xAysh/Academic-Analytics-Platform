@@ -6,7 +6,7 @@ import { getTranscriptData } from '../core/data.js';
 let plotChartInstance = null;
 
 /**
- * Initialize plot controls page
+ * @returns {void}
  */
 export function initPlotControls() {
   const xAxis = $('#xAxis');
@@ -18,16 +18,10 @@ export function initPlotControls() {
   const resetBtn = $('#resetBtn');
   const generateBtn = $('#generateBtn');
 
-  /**
-   * Get available options for axis selects
-   */
   function getAxisOptions(select) {
     return Array.from(select.options).map(opt => opt.value);
   }
 
-  /**
-   * Prevent X and Y axis from being the same
-   */
   function preventSameAxis(changedAxis, otherAxis) {
     if (changedAxis.value === otherAxis.value) {
       const options = getAxisOptions(otherAxis);
@@ -37,9 +31,6 @@ export function initPlotControls() {
     }
   }
 
-  /**
-   * Handle chart type change
-   */
   function handleChartTypeChange() {
     const selectedType = Array.from(chartTypes).find(radio => radio.checked);
     if (!selectedType) return;
@@ -54,9 +45,6 @@ export function initPlotControls() {
     updateSummary();
   }
 
-  /**
-   * Update configuration summary when inputs change
-   */
   function updateSummary() {
     const selectedChartType = Array.from(chartTypes).find(radio => radio.checked);
     const chartType = selectedChartType ? selectedChartType.value : 'line';
@@ -88,7 +76,6 @@ export function initPlotControls() {
     }
   }
 
-  // Add event listeners
   if (xAxis) {
     xAxis.addEventListener('change', function() {
       if (yAxis) preventSameAxis(xAxis, yAxis);
@@ -113,15 +100,12 @@ export function initPlotControls() {
     });
   });
 
-  // Reset button
   if (resetBtn) {
     resetBtn.addEventListener('click', function() {
-      // Reset to defaults
       if (xAxis) xAxis.value = 'semester';
       if (yAxis) yAxis.value = 'gpa';
       if (pieData) pieData.value = 'grades';
 
-      // Reset chart type to line
       chartTypes.forEach(radio => {
         radio.checked = radio.value === 'line';
       });
@@ -131,20 +115,15 @@ export function initPlotControls() {
     });
   }
 
-  // Generate button
   if (generateBtn) {
     generateBtn.addEventListener('click', function() {
       generatePlot();
     });
   }
 
-  // Initial setup
   handleChartTypeChange();
 }
 
-/**
- * Get current configuration
- */
 function getConfiguration() {
   const xAxis = $('#xAxis');
   const yAxis = $('#yAxis');
@@ -159,9 +138,6 @@ function getConfiguration() {
   };
 }
 
-/**
- * Generate plot based on current configuration
- */
 function generatePlot() {
   const config = getConfiguration();
   const canvas = $('#plotPreview');
@@ -171,31 +147,25 @@ function generatePlot() {
     return;
   }
 
-  // Hide placeholder, show canvas
   if (placeholder) placeholder.classList.add('hidden');
   canvas.classList.remove('hidden');
 
-  // Destroy existing chart if any
   if (plotChartInstance) {
     plotChartInstance.destroy();
   }
 
-  // Get data (using transcriptData if available)
   const data = getPlotData(config);
 
-  // For now, use the first selected chart type
   const chartType = config.chartTypes[0];
 
   const ctx = canvas.getContext('2d');
 
-  // Create chart based on type with consistent styling
   const chartConfig = {
     type: chartType === 'pie' ? 'pie' : chartType,
     data: data,
     options: getChartOptions(chartType, config, data)
   };
 
-  // Add vertical guide plugin for line charts (matching existing charts)
   if (chartType === 'line') {
     const verticalGuidePlugin = {
       id: 'verticalGuide',
@@ -224,9 +194,6 @@ function generatePlot() {
   plotChartInstance = new Chart(ctx, chartConfig);
 }
 
-/**
- * Get plot data based on configuration
- */
 function getPlotData(config) {
   const transcriptData = getTranscriptData();
   if (!transcriptData || !transcriptData.getCompletedTerms) {
@@ -240,12 +207,10 @@ function getPlotData(config) {
 
   const chartType = config.chartTypes[0];
 
-  // Handle pie charts separately
   if (chartType === 'pie') {
     return getPieChartData(terms, config.pieData || 'grades');
   }
 
-  // Handle different X-axis options
   let labels = [];
   let data = [];
   let label = '';
@@ -255,7 +220,6 @@ function getPlotData(config) {
     data = getYAxisData(terms, config.yAxis);
     label = getYAxisLabel(config.yAxis);
   } else if (config.xAxis === 'subject') {
-    // Group by subject (e.g., CSC, MATH, PHYS)
     const subjectMap = {};
     terms.forEach(term => {
       term.courses.forEach(course => {
@@ -288,10 +252,9 @@ function getPlotData(config) {
     }
     label = getYAxisLabel(config.yAxis);
   } else if (config.xAxis === 'year') {
-    // Group by year
     const yearMap = {};
     terms.forEach(term => {
-      const year = term.termName.split(' ')[1]; // Extract year from "Spring 2024"
+      const year = term.termName.split(' ')[1];
       if (!yearMap[year]) yearMap[year] = [];
       yearMap[year].push(term);
     });
@@ -302,24 +265,20 @@ function getPlotData(config) {
     });
     label = getYAxisLabel(config.yAxis);
   } else {
-    // Default to semester
     labels = terms.map(t => t.termName);
     data = getYAxisData(terms, config.yAxis);
     label = getYAxisLabel(config.yAxis);
   }
 
-  // Filter out zero/invalid data (but keep GPA even if 0)
   const validData = labels.map((label, i) => ({ label, value: data[i] }))
     .filter(item => item.value > 0 || config.yAxis === 'gpa' || item.value === 0);
   labels = validData.map(item => item.label);
   data = validData.map(item => item.value);
 
-  // Build dataset based on chart type
   let dataset = {
     label: label
   };
 
-  // Line and bar charts use array format
   dataset.data = data;
 
   if (chartType === 'line') {

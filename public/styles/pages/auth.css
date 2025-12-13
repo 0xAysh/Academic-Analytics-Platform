@@ -28,6 +28,8 @@ body {
   overflow: hidden;
   transform: scale(0.9);
   transform-origin: center;
+  width: fit-content;
+  max-width: 100%;
 }
 
 /* Left Panel */
@@ -111,11 +113,13 @@ body {
 .right-panel {
   background: #fff;
   width: 420px;
+  min-width: 420px;
   padding: 56px 48px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   border-radius: 18px;
+  box-sizing: border-box;
 }
 
 .right-panel h2 {
@@ -180,6 +184,7 @@ body {
 .sign-up-btn,
 .sign-in-btn {
   width: 100%;
+  min-width: 100%;
   background: #2986ff;
   color: #fff;
   font-size: 16px;
@@ -193,16 +198,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .sign-in-btn {
   margin-bottom: 24px;
 }
 
+.sign-up-btn:disabled,
+.sign-in-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .sign-up-btn i,
 .sign-in-btn i {
   margin-left: 10px;
   font-size: 16px;
+  display: inline-block;
 }
 
 /* Links */
@@ -240,6 +254,22 @@ body {
 }
 
 .error-message.show {
+  display: block;
+}
+
+/* Success Message */
+.success-message {
+  display: none;
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+
+.success-message.show {
   display: block;
 }
 

@@ -10,14 +10,13 @@ import { sanitizeTranscriptData } from '../utils/sanitizer.js';
 import { sortTermsChronologically } from '../utils/terms.js';
 
 /**
- * Initialize edit transcript page
+ * @returns {void}
  */
 export function initEditTranscript() {
   const transcriptData = getTranscriptData();
   const noDataMessage = $('#noDataMessage');
   const transcriptEditor = $('#transcriptEditor');
 
-  // Check if transcript data exists
   if (!transcriptData || !transcriptData.terms || transcriptData.terms.length === 0) {
     noDataMessage.classList.remove('hidden');
     transcriptEditor.classList.add('hidden');
@@ -27,18 +26,15 @@ export function initEditTranscript() {
   noDataMessage.classList.add('hidden');
   transcriptEditor.classList.remove('hidden');
 
-  // Initialize form with current data
   populateStudentInfo(transcriptData);
   populateTerms(transcriptData);
   
-  // Recalculate all term totals after initial population
   setTimeout(() => {
     transcriptData.terms.forEach((term, index) => {
       recalculateTermTotals(index);
     });
   }, 100);
 
-  // Event listeners
   $('#addTermBtn').addEventListener('click', () => addNewTerm());
   $('#saveBtn').addEventListener('click', () => saveTranscript());
   $('#cancelBtn').addEventListener('click', async () => {
@@ -52,22 +48,15 @@ export function initEditTranscript() {
   });
 }
 
-/**
- * Populate student information form
- */
 function populateStudentInfo(data) {
   const studentInfo = data.studentInfo || {};
   $('#studentDegree').value = studentInfo.degree || '';
 }
 
-/**
- * Populate terms section
- */
 function populateTerms(data) {
   const container = $('#termsContainer');
   container.innerHTML = '';
 
-  // Sort terms chronologically before displaying
   const sortedTerms = sortTermsChronologically(data.terms || []);
 
   sortedTerms.forEach((term, termIndex) => {
@@ -76,9 +65,6 @@ function populateTerms(data) {
   });
 }
 
-/**
- * Create a term card with all its courses (accordion style)
- */
 function createTermCard(term, termIndex) {
   const card = el('div', { 
     className: 'term-item',
@@ -86,7 +72,6 @@ function createTermCard(term, termIndex) {
     'data-open': 'false'
   });
   
-  // Clickable header showing term summary
   const headerBtn = el('button', {
     className: 'term-item__btn',
     type: 'button',
@@ -157,7 +142,6 @@ function createTermCard(term, termIndex) {
   const termNameField = createField('Term Name', `termName_${termIndex}`, term.termName || '', 'e.g., Spring 2024');
   termFields.appendChild(termNameField);
   
-  // Update term summary when term name changes
   const termNameInput = $(`#termName_${termIndex}`);
   if (termNameInput) {
     termNameInput.addEventListener('input', () => {
@@ -181,13 +165,11 @@ function createTermCard(term, termIndex) {
     });
   }
   
-  // Calculated fields (read-only, auto-updated from courses)
   termFields.appendChild(createField('Term GPA', `termGPA_${termIndex}`, (term.termGPA || 0).toFixed(2), 'Auto-calculated', 'number', '0', '4', '0.01', true));
   termFields.appendChild(createField('Credits', `termCredits_${termIndex}`, (term.credits || 0).toFixed(2), 'Auto-calculated', 'number', '0', '999', '0.5', true));
   termFields.appendChild(createField('Earned Credits', `termEarnedCredits_${termIndex}`, (term.earnedCredits || 0).toFixed(2), 'Auto-calculated', 'number', '0', '999', '0.5', true));
   termFields.appendChild(createField('Points', `termPoints_${termIndex}`, (term.points || 0).toFixed(2), 'Auto-calculated', 'number', '0', '999', '0.1', true));
   
-  // isPlanned checkbox
   const plannedGroup = el('div', { className: 'form__group' });
   const plannedLabel = el('label', {
     className: 'form__label',
@@ -206,7 +188,6 @@ function createTermCard(term, termIndex) {
   
   contentInner.appendChild(termFields);
   
-  // Courses section
   const coursesHeader = el('div', {
     style: 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; margin-top: 1.5rem;'
   });
@@ -237,7 +218,6 @@ function createTermCard(term, termIndex) {
   contentInner.appendChild(coursesContainer);
   content.appendChild(contentInner);
   
-  // Toggle functionality
   headerBtn.addEventListener('click', () => toggleTerm(termIndex, card, headerBtn, content, chevron));
   
   card.appendChild(headerBtn);
@@ -246,21 +226,16 @@ function createTermCard(term, termIndex) {
   return card;
 }
 
-/**
- * Toggle term accordion
- */
 function toggleTerm(termIndex, card, btn, content, chevron) {
   const isOpen = card.getAttribute('data-open') === 'true';
   
   if (isOpen) {
-    // Collapse
     card.setAttribute('data-open', 'false');
     btn.setAttribute('aria-expanded', 'false');
     content.style.height = '0';
     content.style.opacity = '0';
     chevron.style.transform = 'rotate(0deg)';
   } else {
-    // Expand
     card.setAttribute('data-open', 'true');
     btn.setAttribute('aria-expanded', 'true');
     const height = content.scrollHeight;
@@ -268,7 +243,6 @@ function toggleTerm(termIndex, card, btn, content, chevron) {
     content.style.opacity = '1';
     chevron.style.transform = 'rotate(180deg)';
     
-    // Set to auto after transition
     setTimeout(() => {
       if (card.getAttribute('data-open') === 'true') {
         content.style.height = 'auto';
@@ -277,10 +251,6 @@ function toggleTerm(termIndex, card, btn, content, chevron) {
   }
 }
 
-/**
- * Create a form field
- * @param {boolean} readOnly - If true, field is read-only (calculated)
- */
 function createField(label, id, value, placeholder = '', type = 'text', min = '', max = '', step = '', readOnly = false) {
   const group = el('div', { className: 'form__group' });
   group.appendChild(el('label', {
@@ -307,9 +277,6 @@ function createField(label, id, value, placeholder = '', type = 'text', min = ''
   return group;
 }
 
-/**
- * Create a course card
- */
 function createCourseCard(termIndex, courseIndex, course) {
   const card = el('div', {
     className: 'card card--tight',
@@ -338,10 +305,8 @@ function createCourseCard(termIndex, courseIndex, course) {
   body.appendChild(createField('Units', `${courseId}_units`, course.units || '0', '', 'number', '0', '10', '0.5'));
   body.appendChild(createField('Earned Units', `${courseId}_earnedUnits`, course.earnedUnits || '0', '', 'number', '0', '10', '0.5'));
   body.appendChild(createField('Grade', `${courseId}_grade`, course.grade || '', 'e.g., A, B+, C-'));
-  // Points is auto-calculated from grade and earnedUnits
   body.appendChild(createField('Points', `${courseId}_points`, (course.points || 0).toFixed(2), 'Auto-calculated', 'number', '0', '20', '0.1', true));
   
-  // Add event listeners to auto-calculate points and term totals
   const codeInput = $(`#${courseId}_code`);
   const nameInput = $(`#${courseId}_name`);
   const unitsInput = $(`#${courseId}_units`);
@@ -349,7 +314,6 @@ function createCourseCard(termIndex, courseIndex, course) {
   const gradeInput = $(`#${courseId}_grade`);
   const pointsInput = $(`#${courseId}_points`);
   
-  // Auto-calculate points when grade or earnedUnits changes
   const updateCoursePoints = () => {
     const grade = gradeInput.value.trim();
     const earnedUnits = parseFloat(earnedUnitsInput.value) || 0;
@@ -362,7 +326,6 @@ function createCourseCard(termIndex, courseIndex, course) {
       pointsInput.value = '0.00';
     }
     
-    // Recalculate term totals
     recalculateTermTotals(termIndex);
   };
   
@@ -376,9 +339,6 @@ function createCourseCard(termIndex, courseIndex, course) {
   return card;
 }
 
-/**
- * Add a new term
- */
 function addNewTerm() {
   const transcriptData = getTranscriptData();
   if (!transcriptData) return;
@@ -396,20 +356,16 @@ function addNewTerm() {
     courses: []
   };
   
-  // Add to data structure
   transcriptData.terms.push(newTerm);
   
-  // Re-render to update UI
   populateTerms(transcriptData);
   
-  // Scroll to new term and expand it
   const container = $('#termsContainer');
   const newTermIndex = container.children.length - 1;
   if (newTermIndex >= 0) {
     const newTermCard = container.children[newTermIndex];
     newTermCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     
-    // Auto-expand the new term
     setTimeout(() => {
       const btn = newTermCard.querySelector('.term-item__btn');
       const content = newTermCard.querySelector('.term-item__content');
@@ -421,9 +377,6 @@ function addNewTerm() {
   }
 }
 
-/**
- * Add a course to a term
- */
 function addCourseToTerm(termIndex) {
   const transcriptData = getTranscriptData();
   if (!transcriptData || !transcriptData.terms[termIndex]) return;
@@ -437,20 +390,15 @@ function addCourseToTerm(termIndex) {
     points: 0
   };
   
-  // Add to data structure
   transcriptData.terms[termIndex].courses.push(newCourse);
   
-  // Re-render to update UI
   populateTerms(transcriptData);
   
-  // Recalculate term totals after adding course
   setTimeout(() => recalculateTermTotals(termIndex), 100);
   
-  // Expand the term and scroll to new course
   const container = $('#termsContainer');
   const termCard = container.children[termIndex];
   if (termCard) {
-    // Auto-expand the term if it's not already open
     const isOpen = termCard.getAttribute('data-open') === 'true';
     if (!isOpen) {
       setTimeout(() => {
@@ -463,7 +411,6 @@ function addCourseToTerm(termIndex) {
       }, 100);
     }
     
-    // Scroll to new course
     setTimeout(() => {
       const coursesContainer = $(`#courses_${termIndex}`);
       if (coursesContainer) {
@@ -476,9 +423,6 @@ function addCourseToTerm(termIndex) {
   }
 }
 
-/**
- * Delete a term
- */
 async function deleteTerm(termIndex) {
   const confirmed = await showConfirm(
     'Are you sure you want to delete this term? All courses in this term will also be deleted.',
@@ -488,13 +432,10 @@ async function deleteTerm(termIndex) {
     return;
   }
   
-  // Update data first
   const transcriptData = getTranscriptData();
   if (transcriptData && transcriptData.terms[termIndex]) {
     transcriptData.terms.splice(termIndex, 1);
-    // Re-render to update indices
     populateTerms(transcriptData);
-    // Recalculate all term totals after deletion
     setTimeout(() => {
       transcriptData.terms.forEach((term, index) => {
         recalculateTermTotals(index);
@@ -503,9 +444,6 @@ async function deleteTerm(termIndex) {
   }
 }
 
-/**
- * Delete a course from a term
- */
 async function deleteCourse(termIndex, courseIndex) {
   const confirmed = await showConfirm(
     'Are you sure you want to delete this course?',
@@ -515,26 +453,18 @@ async function deleteCourse(termIndex, courseIndex) {
     return;
   }
   
-  // Update data first
   const transcriptData = getTranscriptData();
   if (transcriptData && transcriptData.terms[termIndex] && transcriptData.terms[termIndex].courses[courseIndex]) {
     transcriptData.terms[termIndex].courses.splice(courseIndex, 1);
-    // Re-render to update indices
     populateTerms(transcriptData);
-    // Recalculate term totals after deletion
     setTimeout(() => recalculateTermTotals(termIndex), 100);
   }
 }
 
-/**
- * Recalculate term totals (GPA, credits, earnedCredits, points) from courses
- * This is called automatically when courses are added, edited, or deleted
- */
 function recalculateTermTotals(termIndex) {
   const transcriptData = getTranscriptData();
   if (!transcriptData || !transcriptData.terms[termIndex]) return;
   
-  // Collect current course data from form
   const coursesContainer = $(`#courses_${termIndex}`);
   if (!coursesContainer) return;
   
@@ -549,12 +479,10 @@ function recalculateTermTotals(termIndex) {
     const earnedUnits = parseFloat($(`#${courseId}_earnedUnits`)?.value || 0);
     const grade = $(`#${courseId}_grade`)?.value.trim();
     
-    // Calculate points from grade and earnedUnits
     let points = 0;
     if (grade && earnedUnits > 0) {
       const gpaValue = gradeToGPA(grade);
       points = gpaValue * earnedUnits;
-      // Update points field
       const pointsInput = $(`#${courseId}_points`);
       if (pointsInput) {
         pointsInput.value = points.toFixed(2);
@@ -566,7 +494,6 @@ function recalculateTermTotals(termIndex) {
     totalPoints += points;
   });
   
-  // Update term totals (read-only fields)
   const termCreditsInput = $(`#termCredits_${termIndex}`);
   const termEarnedCreditsInput = $(`#termEarnedCredits_${termIndex}`);
   const termPointsInput = $(`#termPoints_${termIndex}`);
@@ -576,11 +503,9 @@ function recalculateTermTotals(termIndex) {
   if (termEarnedCreditsInput) termEarnedCreditsInput.value = totalEarnedCredits.toFixed(2);
   if (termPointsInput) termPointsInput.value = totalPoints.toFixed(2);
   
-  // Calculate term GPA
   const termGPA = totalEarnedCredits > 0 ? totalPoints / totalEarnedCredits : 0;
   if (termGPAInput) termGPAInput.value = termGPA.toFixed(2);
   
-  // Update term summary in header
   const termCards = $$('#termsContainer > .term-item');
   if (termCards[termIndex]) {
     const termCard = termCards[termIndex];
@@ -598,55 +523,44 @@ function recalculateTermTotals(termIndex) {
   }
 }
 
-/**
- * Collect form data and update transcriptData
- */
 function collectFormData() {
   const transcriptData = getTranscriptData();
   if (!transcriptData) return null;
 
-  // Update student info
   transcriptData.studentInfo = {
     name: transcriptData.studentInfo?.name || '',
     studentId: transcriptData.studentInfo?.studentId || '',
     degree: $('#studentDegree').value.trim(),
-    institution: 'SF State' // Always SF State for now
+    institution: 'SF State'
   };
 
-  // Collect terms
   const terms = [];
   const termCards = $$('#termsContainer > .term-item');
   
-  // Collect all terms first
   termCards.forEach((card, termIndex) => {
     const isPlannedInput = $(`#termIsPlanned_${termIndex}`);
-    // Recalculate term totals before collecting (in case user made changes)
     recalculateTermTotals(termIndex);
     
     const term = {
       term: $(`#termCode_${termIndex}`)?.value.trim() || '',
       termName: $(`#termName_${termIndex}`)?.value.trim() || '',
-      // Use calculated values from form (which are auto-updated)
       termGPA: parseFloat($(`#termGPA_${termIndex}`)?.value || 0),
       credits: parseFloat($(`#termCredits_${termIndex}`)?.value || 0),
       earnedCredits: parseFloat($(`#termEarnedCredits_${termIndex}`)?.value || 0),
-      gpaUnits: parseFloat($(`#termEarnedCredits_${termIndex}`)?.value || 0), // Use earnedCredits as gpaUnits
+      gpaUnits: parseFloat($(`#termEarnedCredits_${termIndex}`)?.value || 0),
       points: parseFloat($(`#termPoints_${termIndex}`)?.value || 0),
       honor: null,
       isPlanned: isPlannedInput ? isPlannedInput.checked : false,
       courses: []
     };
 
-    // Collect courses for this term
     const courseCards = $$(`#courses_${termIndex} > .card`);
     courseCards.forEach((courseCard, courseIndex) => {
       const courseId = `course_${termIndex}_${courseIndex}`;
-      // Calculate points from grade and earnedUnits if not already calculated
       let points = parseFloat($(`#${courseId}_points`)?.value || 0);
       const grade = $(`#${courseId}_grade`)?.value.trim() || '';
       const earnedUnits = parseFloat($(`#${courseId}_earnedUnits`)?.value || 0);
       
-      // Recalculate points if grade and earnedUnits are available
       if (grade && earnedUnits > 0 && points === 0) {
         const gpaValue = gradeToGPA(grade);
         points = gpaValue * earnedUnits;
@@ -666,22 +580,15 @@ function collectFormData() {
     terms.push(term);
   });
 
-  // Sort terms chronologically before saving
   const sortedTerms = sortTermsChronologically(terms);
   transcriptData.terms = sortedTerms;
 
-  // Recalculate cumulative data
   recalculateCumulative(transcriptData);
 
   return transcriptData;
 }
 
-/**
- * Recalculate cumulative GPA and credits
- */
 function recalculateCumulative(data) {
-  // Include completed and on-going terms (terms with courses)
-  // Exclude only truly planned terms (no courses)
   const activeTerms = data.terms.filter(t => {
     if (t.isPlanned && (!t.courses || t.courses.length === 0)) {
       return false;
@@ -695,7 +602,6 @@ function recalculateCumulative(data) {
   let totalEarnedCredits = 0;
   let totalPlannedCredits = 0;
   
-  // Calculate from active terms (completed and on-going)
   activeTerms.forEach(term => {
     totalPoints += term.points || 0;
     totalGPAUnits += term.gpaUnits || term.earnedCredits || 0;
@@ -703,7 +609,6 @@ function recalculateCumulative(data) {
     totalEarnedCredits += term.earnedCredits || 0;
   });
   
-  // Calculate planned credits separately (only truly planned terms with no courses)
   data.terms.forEach(term => {
     if (term.isPlanned && (!term.courses || term.courses.length === 0)) {
       totalPlannedCredits += term.credits || 0;
@@ -723,9 +628,6 @@ function recalculateCumulative(data) {
   };
 }
 
-/**
- * Save transcript data
- */
 async function saveTranscript() {
   const updatedData = collectFormData();
   if (!updatedData) {
@@ -733,32 +635,26 @@ async function saveTranscript() {
     return;
   }
 
-  // Validate data
   if (!validateData(updatedData)) {
     return;
   }
 
-  // Show saving indicator
   const saveBtn = $('#saveBtn');
   const originalText = saveBtn.textContent;
   saveBtn.textContent = 'Saving...';
   saveBtn.disabled = true;
 
   try {
-    // Sanitize data before sending (remove sensitive info like name, studentId)
     const sanitizedData = sanitizeTranscriptData(updatedData);
     
-    // Save via API (updates DB)
     const savedTranscript = await updateTranscript(sanitizedData);
     
-    // Update global transcriptData
     const transcriptData = getTranscriptData();
     if (transcriptData && savedTranscript) {
       Object.assign(transcriptData, savedTranscript);
     }
 
     showSuccess('Transcript data saved successfully!');
-    // Redirect to dashboard which will fetch fresh data from DB
     setTimeout(() => {
       window.location.href = '/html/index.html';
     }, 1500);
@@ -769,17 +665,12 @@ async function saveTranscript() {
   }
 }
 
-/**
- * Validate transcript data
- */
 function validateData(data) {
-  // Check terms
   if (!data.terms || data.terms.length === 0) {
     showError('Please add at least one term.');
     return false;
   }
 
-  // Validate each term
   for (let i = 0; i < data.terms.length; i++) {
     const term = data.terms[i];
     if (!term.termName.trim()) {

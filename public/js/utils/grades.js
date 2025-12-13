@@ -1,20 +1,16 @@
 'use strict';
 
-/**
- * Grade color mapping
- */
 export const gradeColors = {
-  A: '#10B981', // green
-  B: '#3B82F6', // blue
-  C: '#F59E0B', // orange
-  D: '#EF4444', // red
-  F: '#B91C1C'  // dark red
+  A: '#10B981',
+  B: '#3B82F6',
+  C: '#F59E0B',
+  D: '#EF4444',
+  F: '#B91C1C'
 };
 
 /**
- * Convert letter grade to GPA value
- * @param {string} grade - Letter grade (e.g., 'A', 'B+', 'C-')
- * @returns {number} GPA value (0.0 to 4.0)
+ * @param {string} grade
+ * @returns {number}
  */
 export function gradeToGPA(grade) {
   const gradeMap = {
@@ -25,11 +21,9 @@ export function gradeToGPA(grade) {
 }
 
 /**
- * Get color for a grade letter
- * @param {string} letter - Grade letter (A, B, C, D, F)
- * @returns {string} Hex color code
+ * @param {string} letter
+ * @returns {string}
  */
 export function getGradeColor(letter) {
   return gradeColors[letter] || '#6b7280';
 }
-

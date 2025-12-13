@@ -2,12 +2,6 @@
 
 const pool = require('../pool');
 
-/**
- * Truncate string to specified length
- * @param {string} str - String to truncate
- * @param {number} maxLength - Maximum length
- * @returns {string} Truncated string
- */
 function truncateString(str, maxLength) {
   if (typeof str !== 'string') {
     return '';
@@ -16,15 +10,13 @@ function truncateString(str, maxLength) {
 }
 
 /**
- * Get transcript by user ID with nested terms and courses
- * @param {number} userId - User ID
- * @returns {Promise<object|null>} Transcript object with terms and courses
+ * @param {number} userId
+ * @returns {Promise<object|null>}
  */
 async function getTranscriptByUserId(userId) {
   const client = await pool.connect();
   
   try {
-    // Get transcript
     const transcriptQuery = 'SELECT * FROM transcripts WHERE user_id = $1';
     const transcriptResult = await client.query(transcriptQuery, [userId]);
     
@@ -34,7 +26,6 @@ async function getTranscriptByUserId(userId) {
     
     const transcript = transcriptResult.rows[0];
     
-    // Get terms for this transcript
     const termsQuery = `
       SELECT * FROM terms 
       WHERE transcript_id = $1 
@@ -43,7 +34,6 @@ async function getTranscriptByUserId(userId) {
     const termsResult = await client.query(termsQuery, [transcript.id]);
     const terms = termsResult.rows;
     
-    // Get courses for each term
     for (const term of terms) {
       const coursesQuery = `
         SELECT * FROM courses 
@@ -54,15 +44,10 @@ async function getTranscriptByUserId(userId) {
       term.courses = coursesResult.rows;
     }
     
-    // Calculate cumulative stats
-    // Include completed and on-going terms (terms with courses) for GPA and earned credits
-    // Exclude only truly planned terms (no courses)
     const activeTerms = terms.filter(t => {
-      // Exclude only truly planned terms (no courses)
       if (t.is_planned && (!t.courses || t.courses.length === 0)) {
         return false;
       }
-      // Include all terms that have courses (completed or on-going)
       return t.courses && t.courses.length > 0;
     });
     
@@ -71,14 +56,12 @@ async function getTranscriptByUserId(userId) {
     let totalCredits = 0;
     let totalPlannedCredits = 0;
     
-    // Calculate from active terms (completed and on-going)
     activeTerms.forEach(term => {
       totalPoints += parseFloat(term.points || 0);
       totalEarnedCredits += parseFloat(term.earned_credits || 0);
       totalCredits += parseFloat(term.credits || 0);
     });
     
-    // Calculate planned credits separately (only truly planned terms with no courses)
     terms.forEach(term => {
       if (term.is_planned && (!term.courses || term.courses.length === 0)) {
         totalPlannedCredits += parseFloat(term.credits || 0);
@@ -101,7 +84,7 @@ async function getTranscriptByUserId(userId) {
         termGPA: parseFloat(term.term_gpa || 0),
         credits: parseFloat(term.credits || 0),
         earnedCredits: parseFloat(term.earned_credits || 0),
-        gpaUnits: parseFloat(term.earned_credits || 0), // Same as earnedCredits
+        gpaUnits: parseFloat(term.earned_credits || 0),
         points: parseFloat(term.points || 0),
         isPlanned: term.is_planned || false,
         courses: term.courses.map(course => ({
@@ -116,10 +99,10 @@ async function getTranscriptByUserId(userId) {
       })),
       cumulative: {
         overallGPA: parseFloat(overallGPA.toFixed(2)),
-        combinedGPA: parseFloat(overallGPA.toFixed(2)), // Same as overallGPA
+        combinedGPA: parseFloat(overallGPA.toFixed(2)),
         totalCredits: parseFloat(totalCredits.toFixed(2)),
         totalEarnedCredits: parseFloat(totalEarnedCredits.toFixed(2)),
-        totalGPAUnits: parseFloat(totalEarnedCredits.toFixed(2)), // Same as totalEarnedCredits
+        totalGPAUnits: parseFloat(totalEarnedCredits.toFixed(2)),
         totalPoints: parseFloat(totalPoints.toFixed(2)),
         totalPlannedCredits: parseFloat(totalPlannedCredits.toFixed(2))
       }
@@ -130,11 +113,9 @@ async function getTranscriptByUserId(userId) {
 }
 
 /**
- * Save or update transcript with nested terms and courses
- * @param {number} userId - User ID
- * @param {object} transcriptData - Transcript data object with studentInfo, terms, and courses
- * @returns {Promise<object>} Saved transcript object
- * @throws {Error} If database operation fails
+ * @param {number} userId
+ * @param {object} transcriptData
+ * @returns {Promise<object>}
  */
 async function saveTranscript(userId, transcriptData) {
   const client = await pool.connect();
@@ -142,30 +123,25 @@ async function saveTranscript(userId, transcriptData) {
   try {
     await client.query('BEGIN');
     
-    // Check if transcript exists
     const existingQuery = 'SELECT id FROM transcripts WHERE user_id = $1';
     const existingResult = await client.query(existingQuery, [userId]);
     
     let transcriptId;
     
     if (existingResult.rows.length > 0) {
-      // Update existing transcript
       transcriptId = existingResult.rows[0].id;
       const updateQuery = 'UPDATE transcripts SET degree = $1 WHERE id = $2';
       const degree = truncateString(transcriptData.studentInfo?.degree || '', 255);
       await client.query(updateQuery, [degree, transcriptId]);
       
-      // Delete existing terms and courses (cascade will handle courses)
       await client.query('DELETE FROM terms WHERE transcript_id = $1', [transcriptId]);
     } else {
-      // Create new transcript
       const insertQuery = 'INSERT INTO transcripts (user_id, degree) VALUES ($1, $2) RETURNING id';
       const degree = truncateString(transcriptData.studentInfo?.degree || '', 255);
       const insertResult = await client.query(insertQuery, [userId, degree]);
       transcriptId = insertResult.rows[0].id;
     }
     
-    // Insert terms and courses
     const terms = transcriptData.terms || [];
     
     for (const term of terms) {
@@ -187,7 +163,6 @@ async function saveTranscript(userId, transcriptData) {
       
       const termId = termResult.rows[0].id;
       
-      // Insert courses for this term
       const courses = term.courses || [];
       
       for (const course of courses) {
@@ -209,7 +184,6 @@ async function saveTranscript(userId, transcriptData) {
     
     await client.query('COMMIT');
     
-    // Return the saved transcript
     return await getTranscriptByUserId(userId);
   } catch (error) {
     await client.query('ROLLBACK');
@@ -223,4 +197,3 @@ module.exports = {
   getTranscriptByUserId,
   saveTranscript
 };
-

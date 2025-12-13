@@ -4,12 +4,10 @@ import { api } from './api.js';
 import { getUserInfo, setUserInfo, clearUserInfo } from '../utils/user.js';
 
 /**
- * Register a new user
- * @param {string} email - User email address
- * @param {string} password - User password
- * @param {string} name - User name
- * @returns {Promise<object>} Response object with success status and user data
- * @throws {Error} If registration fails
+ * @param {string} email
+ * @param {string} password
+ * @param {string} name
+ * @returns {Promise<object>}
  */
 export async function register(email, password, name) {
   const response = await api.post('/auth/register', {
@@ -20,15 +18,13 @@ export async function register(email, password, name) {
   
   if (response.success && response.data.token) {
     api.setToken(response.data.token);
-    // Store user info in localStorage (including name from signup)
     if (response.data.user) {
       const userInfo = {
         id: response.data.user.id,
         email: response.data.user.email,
-        name: response.data.user.name || '' // Store the name entered during signup
+        name: response.data.user.name || ''
       };
       setUserInfo(userInfo);
-      // Avatar initials will be updated when dashboard loads via initAvatarDropdown()
     }
   }
   
@@ -36,11 +32,9 @@ export async function register(email, password, name) {
 }
 
 /**
- * Login user
- * @param {string} email - User email address
- * @param {string} password - User password
- * @returns {Promise<object>} Response object with success status and user data
- * @throws {Error} If login fails
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<object>}
  */
 export async function login(email, password) {
   const response = await api.post('/auth/login', {
@@ -50,15 +44,13 @@ export async function login(email, password) {
   
   if (response.success && response.data.token) {
     api.setToken(response.data.token);
-    // Store user info in localStorage (including name from database)
     if (response.data.user) {
       const userInfo = {
         id: response.data.user.id,
         email: response.data.user.email,
-        name: response.data.user.name || '' // Store the name from database
+        name: response.data.user.name || ''
       };
       setUserInfo(userInfo);
-      // Avatar initials will be updated when dashboard loads via initAvatarDropdown()
     }
   }
   
@@ -66,26 +58,22 @@ export async function login(email, password) {
 }
 
 /**
- * Logout user
- * Clears authentication token and user info from localStorage
  * @returns {Promise<void>}
  */
 export async function logout() {
+  api.setToken(null);
+  clearUserInfo();
+  
   try {
     await api.post('/auth/logout');
   } catch (error) {
-    // Continue even if API call fails
+    console.error('[Auth] Logout API call failed, but token cleared locally:', error);
   }
-  api.setToken(null);
-  // Clear user info from localStorage
-  clearUserInfo();
 }
 
 /**
- * Update user profile (email and/or name)
- * @param {object} profileData - Profile data with email, name, and optional password for email change
- * @returns {Promise<object>} Updated user object
- * @throws {Error} If update fails
+ * @param {object} profileData
+ * @returns {Promise<object>}
  */
 export async function updateProfile(profileData) {
   const response = await api.put('/auth/profile', profileData);
@@ -93,17 +81,52 @@ export async function updateProfile(profileData) {
 }
 
 /**
- * Change user password
- * @param {string} currentPassword - Current password
- * @param {string} newPassword - New password
- * @returns {Promise<object>} Response object
- * @throws {Error} If password change fails
+ * @param {string} currentPassword
+ * @param {string} newPassword
+ * @returns {Promise<object>}
  */
 export async function changePassword(currentPassword, newPassword) {
-  const response = await api.put('/auth/password', {
-    currentPassword,
-    newPassword
+  try {
+    const response = await api.put('/auth/password', {
+      currentPassword,
+      newPassword
+    });
+    
+    if (!response) {
+      throw new Error('No response from server');
+    }
+    
+    if (response.error && !response.success) {
+      throw new Error(response.error);
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('[Auth API] changePassword error:', error);
+    throw error;
+  }
+}
+
+/**
+ * @param {string} email
+ * @returns {Promise<object>}
+ */
+export async function requestPasswordReset(email) {
+  const response = await api.post('/auth/forgot-password', {
+    email
   });
   return response;
 }
 
+/**
+ * @param {string} token
+ * @param {string} newPassword
+ * @returns {Promise<object>}
+ */
+export async function resetPassword(token, newPassword) {
+  const response = await api.post('/auth/reset-password', {
+    token,
+    newPassword
+  });
+  return response;
+}

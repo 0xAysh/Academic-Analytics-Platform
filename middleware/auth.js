@@ -3,8 +3,9 @@
 const { verifyToken, extractTokenFromHeader } = require('../utils/jwt');
 
 /**
- * Middleware to verify JWT token and attach user info to request
- * All routes using this middleware require a valid JWT token
+ * @param {object} req
+ * @param {object} res
+ * @param {Function} next
  */
 function authenticate(req, res, next) {
   try {
@@ -28,7 +29,6 @@ function authenticate(req, res, next) {
 
     const decoded = verifyToken(token);
     
-    // Verify required fields in token
     if (!decoded.userId || !decoded.email) {
       return res.status(401).json({ 
         error: 'Token missing required user information',
@@ -43,7 +43,6 @@ function authenticate(req, res, next) {
 
     next();
   } catch (error) {
-    // Error from verifyToken will have specific message
     return res.status(401).json({ 
       error: error.message || 'Authentication failed',
       code: 'AUTH_FAILED'
@@ -54,4 +53,3 @@ function authenticate(req, res, next) {
 module.exports = {
   authenticate
 };
-

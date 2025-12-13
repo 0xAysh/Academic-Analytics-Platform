@@ -57,9 +57,10 @@
       </div>
      </div>
      <div id="errorMessage" class="error-message" role="alert"></div>
+     <div id="successMessage" class="success-message" role="alert"></div>
      <div class="form-options">
       <label class="checkbox-label"><input type="checkbox" id="rememberMe" /> Remember me</label>
-      <a class="forgot-link" href="#">Forgot Password?</a>
+      <a class="forgot-link" href="/html/forgot-password.html">Forgot Password?</a>
      </div>
      <button class="sign-in-btn" type="submit">Sign In <i class="fas fa-arrow-right"></i></button>
     </form>
@@ -73,6 +74,7 @@
    const form = document.getElementById('loginForm');
    const submitBtn = form?.querySelector('button[type="submit"]');
    const errorMessage = document.getElementById('errorMessage');
+   const successMessage = document.getElementById('successMessage');
    const emailInput = document.getElementById('email');
    const passwordInput = document.getElementById('password');
    const rememberMeCheckbox = document.getElementById('rememberMe');
@@ -95,12 +97,31 @@
        errorMessage.textContent = message;
        errorMessage.classList.add('show');
      }
+     if (successMessage) {
+       successMessage.classList.remove('show');
+       successMessage.textContent = '';
+     }
+   }
+   
+   function showSuccess(message) {
+     if (successMessage) {
+       successMessage.textContent = message;
+       successMessage.classList.add('show');
+     }
+     if (errorMessage) {
+       errorMessage.classList.remove('show');
+       errorMessage.textContent = '';
+     }
    }
    
    function hideError() {
      if (errorMessage) {
        errorMessage.classList.remove('show');
        errorMessage.textContent = '';
+     }
+     if (successMessage) {
+       successMessage.classList.remove('show');
+       successMessage.textContent = '';
      }
    }
    
@@ -138,8 +159,10 @@
        }
        
        if (submitBtn) {
+         const currentWidth = submitBtn.offsetWidth;
          submitBtn.disabled = true;
-         submitBtn.innerHTML = 'Signing In... <i class="fas fa-spinner fa-spin"></i>';
+         submitBtn.style.minWidth = currentWidth + 'px';
+         submitBtn.innerHTML = '<span>Signing In...</span> <i class="fas fa-spinner fa-spin"></i>';
        }
        
        try {
@@ -158,6 +181,7 @@
          if (submitBtn) {
            submitBtn.disabled = false;
            submitBtn.innerHTML = 'Sign In <i class="fas fa-arrow-right"></i>';
+           submitBtn.style.minWidth = '';
          }
        }
      });

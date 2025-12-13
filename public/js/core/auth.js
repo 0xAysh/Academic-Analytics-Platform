@@ -5,9 +5,7 @@ import { logout as apiLogout } from '../api/auth.js';
 import { isAuthPage } from '../utils/routing.js';
 
 /**
- * Initialize auth gate - checks for JWT token
- * Redirects to login if user is not authenticated and not on auth pages
- * @returns {boolean} True if authenticated or on auth page, false if redirected
+ * @returns {boolean}
  */
 export function initAuthGate() {
   try {
@@ -25,16 +23,13 @@ export function initAuthGate() {
 }
 
 /**
- * Handle logout action
- * Logs out user and redirects to login page
  * @returns {Promise<void>}
  */
 export async function logout() {
   try {
     await apiLogout();
   } catch (error) {
-    // Continue even if API call fails
+    console.error('[Auth] Logout API call failed, token cleared locally:', error);
   }
-  window.location.href = '/html/login.html';
+  window.location.replace('/html/login.html');
 }
-

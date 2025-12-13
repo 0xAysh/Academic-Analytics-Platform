@@ -5,15 +5,11 @@ import { initAvatarDropdown } from '../core/nav.js';
 import { initSettings } from './settings.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize auth gate (redirects if not authenticated)
   if (!initAuthGate()) {
-    return; // Stop initialization if redirected
+    return;
   }
 
-  // Initialize navigation (avatar dropdown)
   initAvatarDropdown();
 
-  // Initialize settings page
   initSettings();
 });
-

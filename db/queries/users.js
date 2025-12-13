@@ -3,11 +3,10 @@
 const pool = require('../pool');
 
 /**
- * Create a new user
- * @param {string} email - User email
- * @param {string} passwordHash - Hashed password
- * @param {string} name - User name
- * @returns {Promise<object>} Created user (without password)
+ * @param {string} email
+ * @param {string} passwordHash
+ * @param {string} name
+ * @returns {Promise<object>}
  */
 async function createUser(email, passwordHash, name) {
   const query = `
@@ -20,9 +19,8 @@ async function createUser(email, passwordHash, name) {
 }
 
 /**
- * Get user by email
- * @param {string} email - User email
- * @returns {Promise<object|null>} User object or null
+ * @param {string} email
+ * @returns {Promise<object|null>}
  */
 async function getUserByEmail(email) {
   const query = 'SELECT * FROM users WHERE email = $1';
@@ -31,9 +29,8 @@ async function getUserByEmail(email) {
 }
 
 /**
- * Get user by ID
- * @param {number} userId - User ID
- * @returns {Promise<object|null>} User object or null
+ * @param {number} userId
+ * @returns {Promise<object|null>}
  */
 async function getUserById(userId) {
   const query = 'SELECT id, email, name FROM users WHERE id = $1';
@@ -42,12 +39,10 @@ async function getUserById(userId) {
 }
 
 /**
- * Update user profile (email and/or name)
- * @param {number} userId - User ID
- * @param {string} email - New email (optional)
- * @param {string} name - New name (optional)
- * @returns {Promise<object>} Updated user (without password)
- * @throws {Error} If update fails or email already exists
+ * @param {number} userId
+ * @param {string} email
+ * @param {string} name
+ * @returns {Promise<object>}
  */
 async function updateUserProfile(userId, email, name) {
   const client = await pool.connect();
@@ -55,7 +50,6 @@ async function updateUserProfile(userId, email, name) {
   try {
     await client.query('BEGIN');
     
-    // If email is being changed, check if it already exists
     if (email) {
       const existingUser = await getUserByEmail(email.trim().toLowerCase());
       if (existingUser && existingUser.id !== userId) {
@@ -64,7 +58,6 @@ async function updateUserProfile(userId, email, name) {
       }
     }
     
-    // Build update query dynamically based on what's being updated
     const updates = [];
     const values = [];
     let paramCount = 1;
@@ -112,11 +105,9 @@ async function updateUserProfile(userId, email, name) {
 }
 
 /**
- * Update user password
- * @param {number} userId - User ID
- * @param {string} newPasswordHash - New hashed password
+ * @param {number} userId
+ * @param {string} newPasswordHash
  * @returns {Promise<void>}
- * @throws {Error} If update fails
  */
 async function updateUserPassword(userId, newPasswordHash) {
   const query = `
@@ -138,4 +129,3 @@ module.exports = {
   updateUserProfile,
   updateUserPassword
 };
-

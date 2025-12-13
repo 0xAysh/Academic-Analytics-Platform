@@ -1,171 +1,238 @@
-# CSC 317 — Group Project Repository
+# Academic Analytics Platform
 
-**Milestones 2–4**
+**CSC 317 — Group Project Milestone 4**
 
-This repository will be used for **Group Project Milestones 2, 3, and 4**.
-You have already completed **Milestone 1 (Site Design)** — now it’s time to begin implementing your design into the foundation of a working site.
-
----
-
-## Project Goal — Full‑Stack Scope
-
-Across all milestones, your project (ecommerce site, chatbot, data visualization/dashboard, etc.) must demonstrate a **full‑stack** implementation:
-
-* **Front‑End:** HTML, CSS, and Front‑End JavaScript for the UI.
-* **Back‑End:** Ubuntu VM running Node.js/Express with a PostgreSQL database.
-* **State & Auth:** Active authentication against the database, session/state management, and data retrieval/manipulation that is presented in the UI.
-
-Milestone 2 focuses on front‑end structure and minimal interactivity; Milestones 3 and 4 complete the back‑end, auth, database, and full functionality.
+A full-stack web application for managing and visualizing academic transcript data.
 
 ---
 
-## Setup Instructions
+## Installation & Setup
 
-1. **Accepting the Repository Invitation**
-   Only **one** team member should accept the GitHub Classroom assignment link.
-   That person will own the team repository and should **add all other teammates as collaborators** under **Settings → Collaborators**.
+For detailed setup instructions, see [SETUP.md](SETUP.md).
 
-2. **Running Your Site**
-   Your website must run through a **Node.js + Express** web server inside your **Ubuntu 24.04 virtual machine (VirtualBox guest)**.
-   You will serve your static files (HTML, CSS, and images) from this Express server. **Every teammate should be able to run this.**
-
-   After cloning, run:
-
-   ```
-   npm install
-   node server.js
-   ```
-
-   To run the example `server.js`:
-
-   ```js
-   const express = require('express');
-   const app = express();
-   app.use(express.static('public'));
-   app.listen(3000, () => console.log('Server running on port 3000'));
-   ```
-
-You are free to use the code here or completely replace it with your own.
+Quick start:
+1. Clone repository: `git clone <repository-url>`
+2. Install dependencies: `npm install`
+3. Set up PostgreSQL database
+4. Copy `.env.example` to `.env` and configure
+5. Run migrations: `node db/reset.js`
+6. Start server: `node server.js`
 
 ---
 
-## Milestone 2 — HTML, CSS, Front‑End JS
+## Environment Variables
 
-**Goal:**
-Convert your **site design mock-ups** from Milestone 1 into real **HTML and CSS** code, plus **minimal Front‑End JavaScript**.
+See `.env.example` for template. Required variables:
 
-You will add more functionality (Back‑End JavaScript, database, APIs) in later milestones.
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DB_HOST` or `PGHOST` | PostgreSQL host | `localhost` |
+| `DB_PORT` or `PGPORT` | PostgreSQL port | `5432` |
+| `DB_USER` or `PGUSER` | Database user | `your_db_user` |
+| `DB_PASS` or `PGPASSWORD` | Database password | `your_password` |
+| `DB_NAME` or `PGDATABASE` | Database name | `academic_dashboard` |
+| `JWT_SECRET` | Secret key for JWT tokens | Generate with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `PORT` | Server port (optional) | `3001` |
 
-**Requirements:**
-
-* Implement your site’s structure and styling using **HTML5 and CSS3**.
-* Include **all pages** from your design:
-
-  * Home page
-  * Product or content pages
-  * Navigation and intermediate pages
-* Use placeholder images where needed (final images will come later).
-* Ensure that all navigation links work correctly.
-* The site should load and display correctly when served from your Express server.
-* **Front‑End JS scope for M2:** Keep it minimal and client‑side only (e.g., DOM manipulation, basic event handling, simple form validation). **No server routes, database calls, or external APIs yet.**
+**Note**: The project supports both `DB_*` and `PG*` environment variable formats. Use one format consistently.
 
 ---
 
-## Project Organization
+## Database Schema
 
-* **Directory structure:**
-  Group related files into subdirectories for clarity. Current structure:
+### Tables
 
-  ```
-  public/
-    html/          # HTML pages
-    js/            # Front-End JavaScript
-    styles/        # CSS files
-  db/
-    pool.js        # PostgreSQL connection pool
-    queries/       # Database query functions
-    migrations/    # Database schema migrations
-  routes/          # Express route handlers
-  middleware/      # Express middleware
-  utils/           # Utility functions
-  server.js        # Express server (Back-End entry point)
-  .env             # Environment variables (not in git)
-  .env.example     # Environment variables template
-  backup.tar       # Database backup (exported)
-  ```
+#### users
+- `id` (SERIAL PRIMARY KEY) - User ID
+- `email` (VARCHAR(255) UNIQUE NOT NULL) - User email
+- `password_hash` (VARCHAR(255) NOT NULL) - Hashed password
+- `name` (VARCHAR(255)) - User's full name
 
-* **Back-End files are outside `public/`:**
-  - `server.js` - Express server
-  - `db/pool.js` - Database connection
-  - `routes/` - API routes
-  - `middleware/` - Express middleware
-  - `utils/` - Server-side utilities
+#### transcripts
+- `id` (SERIAL PRIMARY KEY) - Transcript ID
+- `user_id` (INTEGER UNIQUE NOT NULL) - Foreign key to users.id
+- `degree` (VARCHAR(255)) - Degree program
 
-* **Meaningful names:**
-  Use clear, descriptive file names. URLs should make sense to the user.
+#### terms
+- `id` (SERIAL PRIMARY KEY) - Term ID
+- `transcript_id` (INTEGER NOT NULL) - Foreign key to transcripts.id
+- `term_code` (VARCHAR(50)) - Term code (e.g., "SP2024")
+- `term_name` (VARCHAR(255)) - Term name
+- `term_gpa` (DECIMAL(3,2)) - Term GPA
+- `credits` (DECIMAL(5,2)) - Total credits
+- `earned_credits` (DECIMAL(5,2)) - Earned credits
+- `points` (DECIMAL(6,2)) - GPA points
+- `is_planned` (BOOLEAN DEFAULT FALSE) - Whether term is planned
 
-* **Version control:**
-  Commit regularly with meaningful messages. Demonstrate steady, collaborative progress.
+#### courses
+- `id` (SERIAL PRIMARY KEY) - Course ID
+- `term_id` (INTEGER NOT NULL) - Foreign key to terms.id
+- `code` (VARCHAR(50)) - Course code
+- `name` (VARCHAR(255)) - Course name
+- `units` (DECIMAL(4,2)) - Course units
+- `earned_units` (DECIMAL(4,2)) - Earned units
+- `grade` (VARCHAR(10)) - Course grade
+- `points` (DECIMAL(5,2)) - GPA points for course
 
----
+#### password_reset_tokens
+- `id` (SERIAL PRIMARY KEY) - Token ID
+- `user_id` (INTEGER NOT NULL) - Foreign key to users.id
+- `token` (VARCHAR(255) UNIQUE NOT NULL) - Reset token
+- `expires_at` (TIMESTAMP NOT NULL) - Token expiration
+- `used` (BOOLEAN DEFAULT FALSE) - Whether token has been used
+- `created_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP) - Creation timestamp
 
-## Submission
+### Relationships
 
-Each team submits **once** (only one submission per team):
+- `users` → `transcripts` (1:1) - One transcript per user
+- `transcripts` → `terms` (1:many) - Multiple terms per transcript
+- `terms` → `courses` (1:many) - Multiple courses per term
+- `users` → `password_reset_tokens` (1:many) - Multiple tokens per user
 
-1. **GitHub Repository:**
-   Your project code should be in this repository.
+### Indexes
 
-   * Git tag your code with:
-
-   ```
-   git tag -a HTMLCSS -m "TAG HTMLCSS Version"
-   git push origin --tags
-   ```
-
-2. **PDF Write-Up (on Canvas):**
-   Upload one PDF including:
-
-   * Team name
-   * All team members and GitHub usernames
-   * Repository link
-   * Description of what you implemented
-   * Problems encountered and how you solved them
-   * Any known issues or incomplete features
-   * Use of GenAI
-
-> (Use the write-up template.)
+- `idx_transcripts_user_id` on `transcripts(user_id)`
+- `idx_terms_transcript_id` on `terms(transcript_id)`
+- `idx_courses_term_id` on `courses(term_id)`
+- `idx_terms_term_code` on `terms(term_code)`
+- `idx_reset_tokens_token` on `password_reset_tokens(token)`
+- `idx_reset_tokens_user_id` on `password_reset_tokens(user_id)`
+- `idx_reset_tokens_expires_at` on `password_reset_tokens(expires_at)`
 
 ---
 
-## Presentation
+## API Endpoints
 
-You will present your working website on **presentation day**.
-Be ready to demonstrate:
+### Authentication Endpoints
 
-* Full site navigation
-* Page layouts and design consistency
-* CSS styling choices
-* Team collaboration process
+| Method | Endpoint | Description | Auth Required | Request Body | Response |
+|--------|----------|-------------|----------------|--------------|----------|
+| POST | `/api/auth/register` | Register new user | No | `{ email, password, name? }` | `{ success: true, data: { user, token } }` |
+| POST | `/api/auth/login` | Login user | No | `{ email, password }` | `{ success: true, data: { user, token } }` |
+| POST | `/api/auth/logout` | Logout user | No | None | `{ success: true, message }` |
+| PUT | `/api/auth/profile` | Update user profile | Yes | `{ email?, name?, password? }` | `{ success: true, data: { user } }` |
+| PUT | `/api/auth/password` | Change password | Yes | `{ currentPassword, newPassword }` | `{ success: true, message }` |
+| POST | `/api/auth/forgot-password` | Request password reset | No | `{ email }` | `{ success: true, message, resetToken?, resetLink? }` |
+| POST | `/api/auth/reset-password` | Reset password with token | No | `{ token, newPassword }` | `{ success: true, message }` |
+
+**Authentication**: Protected endpoints require `Authorization: Bearer <token>` header.
+
+### Transcript Endpoints
+
+| Method | Endpoint | Description | Auth Required | Request Body | Response |
+|--------|----------|-------------|----------------|--------------|----------|
+| GET | `/api/transcripts` | Get user's transcript | Yes | None | `{ success: true, data: transcript \| null }` |
+| POST | `/api/transcripts` | Save new transcript | Yes | Transcript data object | `{ success: true, data: transcript }` |
+| PUT | `/api/transcripts` | Update transcript | Yes | Transcript data object | `{ success: true, data: transcript }` |
+
+**Transcript Data Structure**:
+```json
+{
+  "studentInfo": {
+    "name": "Student Name",
+    "degree": "Degree Program"
+  },
+  "terms": [
+    {
+      "term": "SP2024",
+      "termName": "Spring 2024",
+      "termGPA": 3.5,
+      "credits": 15.0,
+      "earnedCredits": 15.0,
+      "points": 52.5,
+      "isPlanned": false,
+      "courses": [
+        {
+          "code": "CSC 317",
+          "name": "Web Development",
+          "units": 3.0,
+          "earnedUnits": 3.0,
+          "grade": "A",
+          "points": 12.0
+        }
+      ]
+    }
+  ]
+}
+```
 
 ---
 
-## Rubric (100 Points)
+## Feature Overview
 
-| Category                            | Points | Description                                                                  |
-| ----------------------------------- | ------ | ---------------------------------------------------------------------------- |
-| **Look & Feel**                     | 15     | Visual quality, fidelity to mock-ups, use of color, spacing, and typography. |
-| **Completeness**                    | 15     | All planned pages and navigation paths implemented.                          |
-| **Organization & Code Quality**     | 10     | Logical directory structure, readable HTML/CSS, clear naming.                |
-| **Usability & Accessibility**       | 10     | Intuitive navigation, responsive design, proper alt text, readable contrast. |
-| **Consistency**                     | 10     | Cohesive layout, fonts, and style across pages.                              |
-| **Functionality**                   | 10     | All navigation links work, site runs correctly via Node/Express.             |
-| **Problem Solving & Documentation** | 10     | Clear write-up describing issues, debugging steps, and solutions.            |
-| **Presentation**                    | 10     | Engaging demo, teamwork evident, professional delivery.                      |
-| **Would You Use This Site?**        | 10     | Overall polish, appeal, and usability from a user’s perspective.             |
+### Implemented Features
 
-**Total: 100 points**
-*All team members receive the same grade. Teams are responsible for dividing the work equitably.*
+1. **User Authentication**
+   - Registration with email validation
+   - Login with JWT tokens (4-hour expiry)
+   - Password reset functionality
+   - Profile management (email, name)
+   - Secure password change
+
+2. **Transcript Management**
+   - PDF parsing (client-side)
+   - Text file import
+   - JSON import
+   - Manual editing interface
+   - Data sanitization
+   - Chronological term sorting
+
+3. **Dashboard & Analytics**
+   - Cumulative GPA calculation
+   - Semester-by-semester breakdown
+   - Interactive charts (GPA trends, grade distribution, credits)
+   - Course breakdown table
+   - Strength analysis
+   - On-going semester support
+
+4. **Data Visualization**
+   - Customizable plot controls
+   - Responsive charts (Chart.js)
+   - Dynamic updates
+
+5. **User Interface**
+   - Responsive design
+   - Protected routes
+   - Real-time notifications
+   - Loading states
+   - Error handling
+
+---
+
+## Known Limitations
+
+1. **PDF Parser**: Basic parser may not handle all transcript formats; complex layouts may require manual entry.
+
+2. **Mobile Responsiveness**: Chart visualizations may not be optimal on very small screens.
+
+3. **Error Recovery**: No partial data recovery if PDF parsing fails.
+
+4. **Data Validation**: Some edge cases in transcript formats may not be caught.
+
+5. **Performance**: Large transcript files (100+ courses) may take longer to parse and render.
+
+6. **Accessibility**: Some interactive elements could benefit from better keyboard navigation; screen reader support for charts could be enhanced.
+
+---
+
+## Database Export
+
+A database backup file is included in the repository: `backup-2025-11-19.tar`
+
+To export a fresh backup:
+```bash
+node export-database.js
+```
+
+To import the included backup:
+```bash
+pg_restore -U your_db_user -d academic_dashboard backup-2025-11-19.tar
+```
+
+Or for SQL format:
+```bash
+psql -U your_db_user -d academic_dashboard < backup.sql
+```
 
 ---
 

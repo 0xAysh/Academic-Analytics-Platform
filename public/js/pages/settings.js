@@ -7,7 +7,7 @@ import { showError, showSuccess } from '../utils/notifications.js';
 import { getUserInfo, setUserInfo } from '../utils/user.js';
 
 /**
- * Initialize settings page
+ * @returns {void}
  */
 export function initSettings() {
   initPasswordForm();
@@ -15,12 +15,11 @@ export function initSettings() {
   populateAccountInfo();
 }
 
-/**
- * Initialize password change form
- */
 function initPasswordForm() {
   const form = $('#passwordForm');
   if (!form) return;
+
+  const submitBtn = form.querySelector('button[type="submit"]');
 
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -47,25 +46,93 @@ function initPasswordForm() {
       showError('New password and confirmation do not match.');
       return;
     }
+    
+    if (currentVal === nextVal) {
+      showError('New password must be different from current password.');
+      return;
+    }
 
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Updating...';
+    }
+
+    let passwordChangeSucceeded = false;
+    
     try {
-      await changePassword(currentVal, nextVal);
+      console.log('[Settings] Attempting to change password...');
+      console.log('[Settings] Current password length:', currentVal.length);
+      console.log('[Settings] New password length:', nextVal.length);
+      
+      const response = await changePassword(currentVal, nextVal);
+      console.log('[Settings] Password change response:', response);
+      
+      if (!response) {
+        throw new Error('No response from server');
+      }
+      
+      if (!response.success) {
+        const errorMsg = response.error || response.message || 'Password change failed';
+        console.error('[Settings] Password change failed:', errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      passwordChangeSucceeded = true;
+      console.log('[Settings] Password change succeeded!');
+      
       showSuccess('Password updated successfully. You will be logged out.');
       
-      // Logout and redirect after a short delay
+      if (current) current.value = '';
+      if (next) next.value = '';
+      if (confirm) confirm.value = '';
+      
       setTimeout(async () => {
-        await logout();
-        window.location.href = '/html/login.html';
+        try {
+          console.log('[Settings] Logging out after successful password change...');
+          await logout();
+          window.location.replace('/html/login.html');
+        } catch (logoutError) {
+          console.error('[Settings] Logout error:', logoutError);
+          window.location.replace('/html/login.html');
+        }
       }, 1500);
+      
     } catch (error) {
-      showError(error.message || 'Failed to update password. Please try again.');
+      console.error('[Settings] Password change error caught:', error);
+      console.error('[Settings] Error type:', typeof error);
+      console.error('[Settings] Error message:', error.message);
+      console.error('[Settings] Error stack:', error.stack);
+      
+      if (passwordChangeSucceeded) {
+        console.error('[Settings] ERROR: passwordChangeSucceeded is true but we caught an error!');
+        passwordChangeSucceeded = false;
+      }
+      
+      const errorMessage = error.message || 'Failed to update password. Please check your current password and try again.';
+      console.log('[Settings] Showing error message:', errorMessage);
+      
+      try {
+        showError(errorMessage);
+        console.log('[Settings] Error notification shown');
+      } catch (notifError) {
+        console.error('[Settings] Failed to show error notification:', notifError);
+        alert('Error: ' + errorMessage);
+      }
+      
+      console.log('[Settings] User will NOT be logged out - password change failed');
+      
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update Password';
+      }
+      
+      if (next) next.value = '';
+      if (confirm) confirm.value = '';
     }
   });
 }
 
-/**
- * Initialize profile editing functionality
- */
 function initProfileEditing() {
   const editBtn = $('#editProfileBtn');
   const saveBtn = $('#saveChangesBtn');
@@ -78,14 +145,12 @@ function initProfileEditing() {
 
   if (editBtn) {
     editBtn.addEventListener('click', function() {
-      // Get original values
       const emailEl = $('#infoEmail');
       const nameEl = $('#infoName');
       
       if (emailEl) originalEmail = emailEl.textContent.trim();
       if (nameEl) originalName = nameEl.textContent.trim();
 
-      // Convert email to input
       if (emailEl) {
         const input = document.createElement('input');
         input.className = 'form__input';
@@ -96,7 +161,6 @@ function initProfileEditing() {
         emailEl.replaceWith(input);
       }
 
-      // Convert name to input
       if (nameEl) {
         const input = document.createElement('input');
         input.className = 'form__input';
@@ -107,7 +171,6 @@ function initProfileEditing() {
         nameEl.replaceWith(input);
       }
 
-      // Show/hide buttons
       editBtn.classList.add('hidden');
       saveBtn.classList.remove('hidden');
       cancelBtn.classList.remove('hidden');
@@ -118,7 +181,6 @@ function initProfileEditing() {
 
   if (cancelBtn) {
     cancelBtn.addEventListener('click', function() {
-      // Restore original values
       const emailInput = $('#editEmail');
       const nameInput = $('#editName');
 
@@ -138,7 +200,6 @@ function initProfileEditing() {
         nameInput.replaceWith(div);
       }
 
-      // Show/hide buttons
       editBtn.classList.remove('hidden');
       saveBtn.classList.add('hidden');
       cancelBtn.classList.add('hidden');
@@ -162,19 +223,16 @@ function initProfileEditing() {
       const newName = nameInput.value.trim();
       const emailChanged = newEmail !== originalEmail;
 
-      // Validate email
       if (!newEmail || !newEmail.includes('@')) {
         showError('Please enter a valid email address.');
         return;
       }
 
-      // Validate name
       if (!newName) {
         showError('Please enter your name.');
         return;
       }
 
-      // If email changed, require password
       if (emailChanged) {
         const password = emailPasswordInput ? emailPasswordInput.value.trim() : '';
         if (!password) {
@@ -183,7 +241,6 @@ function initProfileEditing() {
           return;
         }
 
-        // Prepare update data with password
         try {
           const updatedUser = await updateProfile({
             email: newEmail,
@@ -191,7 +248,6 @@ function initProfileEditing() {
             password: password
           });
 
-          // Update localStorage
           const userInfo = getUserInfo();
           if (userInfo) {
             userInfo.email = updatedUser.email;
@@ -199,7 +255,6 @@ function initProfileEditing() {
             setUserInfo(userInfo);
           }
 
-          // Update UI
           const emailDiv = document.createElement('div');
           emailDiv.className = 'info-tile__value';
           emailDiv.id = 'infoEmail';
@@ -224,20 +279,17 @@ function initProfileEditing() {
           showError(error.message || 'Failed to update profile. Please try again.');
         }
       } else {
-        // Email not changed, no password needed
         try {
           const updatedUser = await updateProfile({
             name: newName
           });
 
-          // Update localStorage
           const userInfo = getUserInfo();
           if (userInfo) {
             userInfo.name = updatedUser.name;
             setUserInfo(userInfo);
           }
 
-          // Update UI
           const nameDiv = document.createElement('div');
           nameDiv.className = 'info-tile__value';
           nameDiv.id = 'infoName';
@@ -259,12 +311,8 @@ function initProfileEditing() {
   }
 }
 
-/**
- * Populate account info from user data and transcript
- */
 function populateAccountInfo() {
   try {
-    // Get email and name from userInfo (localStorage)
     const userInfo = getUserInfo();
     const emailEl = $('#infoEmail');
     const nameEl = $('#infoName');

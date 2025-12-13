@@ -1,10 +1,9 @@
 'use strict';
 
 /**
- * Render GPA trend line chart
- * @param {HTMLCanvasElement} container - Canvas element to render chart
- * @param {Array<{termName: string, termGPA: number}>} terms - Array of term data
- * @returns {Chart|null} Chart instance or null if unable to render
+ * @param {HTMLCanvasElement} container
+ * @param {Array<{termName: string, termGPA: number}>} terms
+ * @returns {Chart|null}
  */
 export function renderGpaTrend(container, terms) {
   if (!container || !window.Chart) return null;
@@ -14,7 +13,6 @@ export function renderGpaTrend(container, terms) {
   
   if (!labels.length) return null;
 
-  // Vertical guide plugin for hover interaction
   const verticalGuidePlugin = {
     id: 'verticalGuide',
     afterDraw: (chart) => {
@@ -85,5 +83,3 @@ export function renderGpaTrend(container, terms) {
     plugins: [verticalGuidePlugin]
   });
 }
-
-

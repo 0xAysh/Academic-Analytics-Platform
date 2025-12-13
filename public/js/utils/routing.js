@@ -1,12 +1,7 @@
 'use strict';
 
 /**
- * Routing utility functions
- */
-
-/**
- * Check if current page is an authentication page (login or signup)
- * @returns {boolean} True if current page is login or signup
+ * @returns {boolean}
  */
 export function isAuthPage() {
   try {
@@ -19,11 +14,9 @@ export function isAuthPage() {
 }
 
 /**
- * Redirect to login page if not already on auth page
  */
 export function redirectToLogin() {
   if (!isAuthPage()) {
     window.location.href = '/html/login.html';
   }
 }
-

@@ -6,13 +6,8 @@ const { authenticate } = require('../middleware/auth');
 const { getTranscriptByUserId, saveTranscript } = require('../db/queries/transcripts');
 const { validateTranscriptData } = require('../utils/validation');
 
-// All routes require authentication
 router.use(authenticate);
 
-/**
- * Get user's transcript
- * GET /api/transcripts
- */
 router.get('/', async (req, res, next) => {
   try {
     const transcript = await getTranscriptByUserId(req.user.userId);
@@ -33,10 +28,6 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-/**
- * Save or update transcript
- * POST /api/transcripts
- */
 router.post('/', async (req, res, next) => {
   try {
     const transcriptData = req.body;
@@ -45,7 +36,6 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Transcript data is required' });
     }
     
-    // Validate transcript data structure
     const validation = validateTranscriptData(transcriptData);
     if (!validation.valid) {
       return res.status(400).json({ error: validation.error });
@@ -62,10 +52,6 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-/**
- * Update transcript
- * PUT /api/transcripts
- */
 router.put('/', async (req, res, next) => {
   try {
     const transcriptData = req.body;
@@ -74,7 +60,6 @@ router.put('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Transcript data is required' });
     }
     
-    // Validate transcript data structure
     const validation = validateTranscriptData(transcriptData);
     if (!validation.valid) {
       return res.status(400).json({ error: validation.error });
@@ -92,4 +77,3 @@ router.put('/', async (req, res, next) => {
 });
 
 module.exports = router;
-

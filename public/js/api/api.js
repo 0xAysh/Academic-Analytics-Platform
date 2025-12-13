@@ -4,13 +4,7 @@ import { isAuthPage, redirectToLogin } from '../utils/routing.js';
 
 const API_BASE_URL = '/api';
 
-/**
- * Base API client with fetch wrapper
- */
 class ApiClient {
-  /**
-   * Get JWT token from localStorage
-   */
   getToken() {
     try {
       return localStorage.getItem('authToken');
@@ -20,9 +14,6 @@ class ApiClient {
     }
   }
 
-  /**
-   * Set JWT token in localStorage
-   */
   setToken(token) {
     try {
       if (token) {
@@ -35,17 +26,15 @@ class ApiClient {
     }
   }
 
-  /**
-   * Handle 401 unauthorized response
-   * Clears token and redirects to login if not on auth page
-   */
   handleUnauthorized() {
     this.setToken(null);
     redirectToLogin();
   }
 
   /**
-   * Make API request
+   * @param {string} endpoint
+   * @param {object} options
+   * @returns {Promise<object>}
    */
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -68,7 +57,6 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
       
-      // Check if response is JSON before parsing
       const contentType = response.headers.get('content-type');
       let data;
       
@@ -79,9 +67,7 @@ class ApiClient {
           throw new Error('Invalid JSON response from server');
         }
       } else {
-        // Non-JSON response (e.g., HTML error page)
         const text = await response.text();
-        // If token is invalid, clear it and redirect
         if (response.status === 401) {
           this.handleUnauthorized();
         }
@@ -89,10 +75,21 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        // If token is invalid, clear it and redirect
         if (response.status === 401) {
+          console.error('[API] 401 Unauthorized - token may be invalid/expired');
+          console.error('[API] Endpoint:', endpoint);
+          console.error('[API] Response data:', data);
+          
+          if (endpoint.includes('/auth/password')) {
+            console.warn('[API] Got 401 on password change endpoint - this is unexpected, treating as error');
+            throw new Error(data.error || 'Authentication failed. Please check your current password.');
+          }
+          
           this.handleUnauthorized();
+          throw new Error(data.error || 'Authentication failed. Please log in again.');
         }
+        console.log(`[API] Request failed with status ${response.status} for endpoint ${endpoint}`);
+        console.log('[API] Error data:', data);
         throw new Error(data.error || 'Request failed');
       }
 
@@ -104,14 +101,17 @@ class ApiClient {
   }
 
   /**
-   * GET request
+   * @param {string} endpoint
+   * @returns {Promise<object>}
    */
   async get(endpoint) {
     return this.request(endpoint, { method: 'GET' });
   }
 
   /**
-   * POST request
+   * @param {string} endpoint
+   * @param {object} body
+   * @returns {Promise<object>}
    */
   async post(endpoint, body) {
     return this.request(endpoint, {
@@ -121,7 +121,9 @@ class ApiClient {
   }
 
   /**
-   * PUT request
+   * @param {string} endpoint
+   * @param {object} body
+   * @returns {Promise<object>}
    */
   async put(endpoint, body) {
     return this.request(endpoint, {
@@ -131,13 +133,12 @@ class ApiClient {
   }
 
   /**
-   * DELETE request
+   * @param {string} endpoint
+   * @returns {Promise<object>}
    */
   async delete(endpoint) {
     return this.request(endpoint, { method: 'DELETE' });
   }
 }
 
-// Export singleton instance
 export const api = new ApiClient();
-

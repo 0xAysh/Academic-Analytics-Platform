@@ -70,6 +70,8 @@
        <input class="form-input" id="confirm" type="password" placeholder="Repeat password" autocomplete="new-password" required />
       </div>
      </div>
+     <div id="errorMessage" class="error-message" role="alert"></div>
+     <div id="successMessage" class="success-message" role="alert"></div>
      <button class="sign-up-btn" type="submit">Create Account <i class="fas fa-arrow-right"></i></button>
     </form>
     <div class="signin-text">Already have an account?<a class="signin-link" href="/html/login.html"> Sign In</a></div>
@@ -77,18 +79,72 @@
   </div>
   <script type="module">
    import { register } from '/js/api/auth.js';
-   import { showError, showSuccess } from '/js/utils/notifications.js';
    
    const form = document.getElementById('signupForm');
    const submitBtn = form?.querySelector('button[type="submit"]');
+   const errorMessage = document.getElementById('errorMessage');
+   const successMessage = document.getElementById('successMessage');
+   const nameInput = document.getElementById('name');
+   const emailInput = document.getElementById('email');
+   const passwordInput = document.getElementById('password');
+   const confirmInput = document.getElementById('confirm');
+   
+   function showError(message) {
+     if (errorMessage) {
+       errorMessage.textContent = message;
+       errorMessage.classList.add('show');
+     }
+     if (successMessage) {
+       successMessage.classList.remove('show');
+       successMessage.textContent = '';
+     }
+   }
+   
+   function showSuccess(message) {
+     if (successMessage) {
+       successMessage.textContent = message;
+       successMessage.classList.add('show');
+     }
+     if (errorMessage) {
+       errorMessage.classList.remove('show');
+       errorMessage.textContent = '';
+     }
+   }
+   
+   function hideError() {
+     if (errorMessage) {
+       errorMessage.classList.remove('show');
+       errorMessage.textContent = '';
+     }
+     if (successMessage) {
+       successMessage.classList.remove('show');
+       successMessage.textContent = '';
+     }
+   }
+   
+   // Clear error when user starts typing
+   if (nameInput) {
+     nameInput.addEventListener('input', hideError);
+   }
+   if (emailInput) {
+     emailInput.addEventListener('input', hideError);
+   }
+   if (passwordInput) {
+     passwordInput.addEventListener('input', hideError);
+   }
+   if (confirmInput) {
+     confirmInput.addEventListener('input', hideError);
+   }
    
    if (form) {
      form.addEventListener('submit', async function(e){
        e.preventDefault();
-       const name = (document.getElementById('name')||{}).value || '';
-       const email = (document.getElementById('email')||{}).value || '';
-       const password = (document.getElementById('password')||{}).value || '';
-       const confirm = (document.getElementById('confirm')||{}).value || '';
+       hideError(); // Clear any previous errors
+       
+       const name = (nameInput||{}).value || '';
+       const email = (emailInput||{}).value || '';
+       const password = (passwordInput||{}).value || '';
+       const confirm = (confirmInput||{}).value || '';
        
        if (!name || !email || !password) { 
          showError('Please fill all fields.'); 
@@ -106,8 +162,10 @@
        }
        
        if (submitBtn) {
+         const currentWidth = submitBtn.offsetWidth;
          submitBtn.disabled = true;
-         submitBtn.innerHTML = 'Creating Account... <i class="fas fa-spinner fa-spin"></i>';
+         submitBtn.style.minWidth = currentWidth + 'px';
+         submitBtn.innerHTML = '<span>Creating Account...</span> <i class="fas fa-spinner fa-spin"></i>';
        }
        
        try {
@@ -123,6 +181,7 @@
            if (submitBtn) {
              submitBtn.disabled = false;
              submitBtn.innerHTML = 'Create Account <i class="fas fa-arrow-right"></i>';
+             submitBtn.style.minWidth = '';
            }
          }
        } catch (error) {
@@ -130,6 +189,7 @@
          if (submitBtn) {
            submitBtn.disabled = false;
            submitBtn.innerHTML = 'Create Account <i class="fas fa-arrow-right"></i>';
+           submitBtn.style.minWidth = '';
          }
        }
      });
