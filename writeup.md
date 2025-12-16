@@ -5,12 +5,11 @@
 Team Name: [Your Team Name Here]
 
 Team Members:
-- [Member 1 Name] - GitHub: [username1]
-- [Member 2 Name] - GitHub: [username2]
-- [Member 3 Name] - GitHub: [username3]
-- [Member 4 Name] - GitHub: [username4]
+- Dhrumil Kanadiya - GitHub: https://github.com/DhrumilKanadiya
+- Abhishek Rangani - GitHub: https://github.com/abhie2005
+- Ayush Rangrej    - GitHub: https://github.com/0xAysh
 
-Repository Link: [Your GitHub Repository URL]
+Repository Link: https://github.com/CSC317-F25/group-project-0xAysh
 
 ---
 
@@ -332,7 +331,23 @@ PostgreSQL database with normalized schema:
 
 ## Contributions by Each Member
 
-[Team members should fill in their individual contributions here]
+### Dhrumil Kanadiya
+- Designed and implemented PostgreSQL database schema with normalized tables
+- Built authentication system (JWT tokens, password hashing, middleware)
+- Developed RESTful API endpoints for authentication and transcripts
+- Implemented database query modules and error handling
+
+### Abhishek Rangani
+- Implemented frontend architecture and core data management modules
+- Built PDF parsing system using PDF.js for transcript extraction
+- Created dashboard with interactive Chart.js visualizations
+- Developed customizable plot controls for data visualization
+
+### Ayush Rangrej
+- Designed all HTML pages and comprehensive CSS architecture
+- Implemented user interface pages (authentication, settings, transcript editing)
+- Built navigation system, notifications, and UX features
+- Conducted code refactoring, removed inline styles, and added documentation
 
 ---
 
