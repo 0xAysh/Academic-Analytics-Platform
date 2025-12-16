@@ -2,6 +2,7 @@
 
 import { $, $$ } from '../utils/dom.js';
 import { getTranscriptData } from '../core/data.js';
+import { getActiveTerms } from '../utils/terms.js';
 
 let plotChartInstance = null;
 
@@ -196,11 +197,14 @@ function generatePlot() {
 
 function getPlotData(config) {
   const transcriptData = getTranscriptData();
-  if (!transcriptData || !transcriptData.getCompletedTerms) {
+  if (!transcriptData) {
     return getFallbackData();
   }
 
-  const terms = transcriptData.getCompletedTerms();
+  const terms = typeof transcriptData.getCompletedTerms === 'function'
+    ? transcriptData.getCompletedTerms()
+    : getActiveTerms(transcriptData);
+  
   if (!terms || terms.length === 0) {
     return getFallbackData();
   }
