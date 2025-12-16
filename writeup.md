@@ -2,7 +2,7 @@
 
 ## Team Information
 
-Team Name: [Your Team Name Here]
+Team Name: Lattha Gang
 
 Team Members:
 - Dhrumil Kanadiya - GitHub: https://github.com/DhrumilKanadiya
