@@ -233,20 +233,3 @@ Or for SQL format:
 ```bash
 psql -U your_db_user -d academic_dashboard < backup.sql
 ```
-
----
-
-## Coming Up Next
-
-**Milestone 3 — Back‑End & Data (Preview):**
-
-* Introduce **Back‑End JavaScript** with Express routes and controllers.
-* Implement form handling and validation (server‑side), and dynamic updates via fetch/XHR from the client.
-* Integrate **PostgreSQL** for persistence (CRUD) using a Node/Postgres client.
-* Build basic REST API endpoints in Express (no advanced auth yet).
-
-**Milestone 4 — Final Project:**
-
-* Full functionality: robust database integration, API endpoints, **authentication and authorization**, and complete Front‑End behavior.
-* Polished styling, mobile responsiveness, and accessibility.
-* Final presentation and written reflection.
