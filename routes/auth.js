@@ -4,7 +4,6 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const { createUser, getUserByEmail, getUserById, updateUserProfile, updateUserPassword } = require('../db/queries/users');
-const { createResetToken, verifyResetToken, markTokenAsUsed } = require('../db/queries/passwordReset');
 const { hashPassword, verifyPassword } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
 const { isValidEmail, validatePassword, sanitizeString } = require('../utils/validation');
@@ -178,73 +177,6 @@ router.put('/password', authenticate, async (req, res, next) => {
     res.json({
       success: true,
       message: 'Password updated successfully'
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/forgot-password', async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-    
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
-    
-    const user = await getUserByEmail(email.trim().toLowerCase());
-    
-    if (user) {
-      const token = await createResetToken(user.id, 1);
-      
-      res.json({
-        success: true,
-        message: 'If an account with that email exists, a password reset token has been generated.',
-        resetToken: token,
-        resetLink: `/html/reset-password.html?token=${token}`
-      });
-    } else {
-      res.json({
-        success: true,
-        message: 'If an account with that email exists, a password reset token has been generated.'
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/reset-password', async (req, res, next) => {
-  try {
-    const { token, newPassword } = req.body;
-    
-    if (!token || !newPassword) {
-      return res.status(400).json({ error: 'Token and new password are required' });
-    }
-    
-    const passwordValidation = validatePassword(newPassword);
-    if (!passwordValidation.valid) {
-      return res.status(400).json({ error: passwordValidation.error });
-    }
-    
-    const tokenData = await verifyResetToken(token);
-    if (!tokenData) {
-      return res.status(400).json({ error: 'Invalid or expired reset token' });
-    }
-    
-    const newPasswordHash = await hashPassword(newPassword);
-    
-    await updateUserPassword(tokenData.user_id, newPasswordHash);
-    
-    await markTokenAsUsed(token);
-    
-    res.json({
-      success: true,
-      message: 'Password has been reset successfully. You can now log in with your new password.'
     });
   } catch (error) {
     next(error);

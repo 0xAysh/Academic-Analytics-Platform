@@ -1,10 +1,8 @@
 'use strict';
 
 import { $ } from '../utils/dom.js';
-import { updateProfile, changePassword } from '../api/auth.js';
-import { logout } from '../api/auth.js';
+import { updateProfile, changePassword, logout, getUser, setUser } from '../api.js';
 import { showError, showSuccess } from '../utils/notifications.js';
-import { getUserInfo, setUserInfo } from '../utils/user.js';
 
 /**
  * @returns {void}
@@ -248,11 +246,11 @@ function initProfileEditing() {
             password: password
           });
 
-          const userInfo = getUserInfo();
+          const userInfo = getUser();
           if (userInfo) {
             userInfo.email = updatedUser.email;
             userInfo.name = updatedUser.name;
-            setUserInfo(userInfo);
+            setUser(userInfo);
           }
 
           const emailDiv = document.createElement('div');
@@ -284,10 +282,10 @@ function initProfileEditing() {
             name: newName
           });
 
-          const userInfo = getUserInfo();
+          const userInfo = getUser();
           if (userInfo) {
             userInfo.name = updatedUser.name;
-            setUserInfo(userInfo);
+            setUser(userInfo);
           }
 
           const nameDiv = document.createElement('div');
@@ -313,7 +311,7 @@ function initProfileEditing() {
 
 function populateAccountInfo() {
   try {
-    const userInfo = getUserInfo();
+    const userInfo = getUser();
     const emailEl = $('#infoEmail');
     const nameEl = $('#infoName');
 

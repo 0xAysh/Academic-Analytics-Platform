@@ -1,8 +1,7 @@
 'use strict';
 
 import { $ } from '../utils/dom.js';
-import { logout } from './auth.js';
-import { getUserInfo } from '../utils/user.js';
+import { logout, getUser } from '../api.js';
 
 function getUserInitials(name) {
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -24,7 +23,7 @@ export function updateAvatarInitials() {
   if (!avatarIcon) return;
   
   try {
-    const userInfo = getUserInfo();
+    const userInfo = getUser();
     if (userInfo && userInfo.name) {
       const name = userInfo.name || '';
       const initials = getUserInitials(name);

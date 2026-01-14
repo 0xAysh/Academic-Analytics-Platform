@@ -3,7 +3,7 @@
 import { $ } from '../utils/dom.js';
 import { parseTranscript, parseJSONTranscript } from '../utils/parser.js';
 import { sanitizeTranscriptData } from '../utils/sanitizer.js';
-import { saveTranscript } from '../api/transcripts.js';
+import { saveTranscript } from '../api.js';
 import { showError, showSuccess } from '../utils/notifications.js';
 import { getTranscriptData } from './data.js';
 

@@ -20,7 +20,6 @@ async function resetDatabase() {
       'DROP TABLE IF EXISTS courses CASCADE',
       'DROP TABLE IF EXISTS terms CASCADE',
       'DROP TABLE IF EXISTS transcripts CASCADE',
-      'DROP TABLE IF EXISTS password_reset_tokens CASCADE',
       'DROP TABLE IF EXISTS users CASCADE'
     ];
     
@@ -32,7 +31,7 @@ async function resetDatabase() {
     
     console.log('\nCreating tables from migration...');
     
-    const migrations = ['001_initial_schema.sql', '002_password_reset_tokens.sql'];
+    const migrations = ['001_initial_schema.sql'];
     
     for (const migrationFile of migrations) {
       const migrationPath = path.join(__dirname, 'migrations', migrationFile);
@@ -46,7 +45,7 @@ async function resetDatabase() {
     }
     
     console.log('\nVerifying tables...');
-    const tables = ['users', 'transcripts', 'terms', 'courses', 'password_reset_tokens'];
+    const tables = ['users', 'transcripts', 'terms', 'courses'];
     for (const table of tables) {
       const result = await client.query(`
         SELECT EXISTS (

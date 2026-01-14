@@ -2,7 +2,7 @@
 
 import { $, $$, el } from '../utils/dom.js';
 import { getTranscriptData } from '../core/data.js';
-import { updateTranscript } from '../api/transcripts.js';
+import { updateTranscript } from '../api.js';
 import { gradeToGPA } from '../utils/grades.js';
 import { showSuccess, showError } from '../utils/notifications.js';
 import { showConfirm } from '../utils/confirm.js';

@@ -1,12 +1,12 @@
 'use strict';
 
-import { initAuthGate } from '../core/auth.js';
+import { requireAuth } from '../api.js';
 import { initAvatarDropdown } from '../core/nav.js';
 import { initEditTranscript } from './edit-transcript.js';
 import { loadTranscriptData, getTranscriptData } from '../core/data.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!initAuthGate()) {
+  if (!requireAuth()) {
     return;
   }
 

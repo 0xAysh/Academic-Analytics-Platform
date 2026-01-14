@@ -74,20 +74,11 @@ See `.env.example` for template. Required variables:
 - `grade` (VARCHAR(10)) - Course grade
 - `points` (DECIMAL(5,2)) - GPA points for course
 
-#### password_reset_tokens
-- `id` (SERIAL PRIMARY KEY) - Token ID
-- `user_id` (INTEGER NOT NULL) - Foreign key to users.id
-- `token` (VARCHAR(255) UNIQUE NOT NULL) - Reset token
-- `expires_at` (TIMESTAMP NOT NULL) - Token expiration
-- `used` (BOOLEAN DEFAULT FALSE) - Whether token has been used
-- `created_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP) - Creation timestamp
-
 ### Relationships
 
 - `users` → `transcripts` (1:1) - One transcript per user
 - `transcripts` → `terms` (1:many) - Multiple terms per transcript
 - `terms` → `courses` (1:many) - Multiple courses per term
-- `users` → `password_reset_tokens` (1:many) - Multiple tokens per user
 
 ### Indexes
 
@@ -95,9 +86,6 @@ See `.env.example` for template. Required variables:
 - `idx_terms_transcript_id` on `terms(transcript_id)`
 - `idx_courses_term_id` on `courses(term_id)`
 - `idx_terms_term_code` on `terms(term_code)`
-- `idx_reset_tokens_token` on `password_reset_tokens(token)`
-- `idx_reset_tokens_user_id` on `password_reset_tokens(user_id)`
-- `idx_reset_tokens_expires_at` on `password_reset_tokens(expires_at)`
 
 ---
 
@@ -112,8 +100,6 @@ See `.env.example` for template. Required variables:
 | POST | `/api/auth/logout` | Logout user | No | None | `{ success: true, message }` |
 | PUT | `/api/auth/profile` | Update user profile | Yes | `{ email?, name?, password? }` | `{ success: true, data: { user } }` |
 | PUT | `/api/auth/password` | Change password | Yes | `{ currentPassword, newPassword }` | `{ success: true, message }` |
-| POST | `/api/auth/forgot-password` | Request password reset | No | `{ email }` | `{ success: true, message, resetToken?, resetLink? }` |
-| POST | `/api/auth/reset-password` | Reset password with token | No | `{ token, newPassword }` | `{ success: true, message }` |
 
 **Authentication**: Protected endpoints require `Authorization: Bearer <token>` header.
 
@@ -165,7 +151,6 @@ See `.env.example` for template. Required variables:
 1. **User Authentication**
    - Registration with email validation
    - Login with JWT tokens (4-hour expiry)
-   - Password reset functionality
    - Profile management (email, name)
    - Secure password change
 

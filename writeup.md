@@ -296,7 +296,6 @@ The back-end uses Node.js with Express.js:
   - `db/pool.js` - PostgreSQL connection pool
   - `db/queries/users.js` - User database operations
   - `db/queries/transcripts.js` - Transcript database operations
-  - `db/queries/passwordReset.js` - Password reset token management
   - `db/migrations/` - Database schema migrations
 - **Utilities**:
   - `utils/jwt.js` - JWT token generation and verification
@@ -391,7 +390,7 @@ PostgreSQL database with normalized schema:
 **Design Decisions:**
 1. **Client-Side PDF Parsing**: Chose to parse PDFs on the client to reduce server load, but this may exclude users with limited device capabilities
 2. **JWT Token Storage**: Stored tokens in localStorage for convenience, but this may be less secure than httpOnly cookies
-3. **No Email Integration**: Password reset tokens are displayed in UI (development mode), which may not be suitable for production
+3. **No Email Integration**: No email verification or notification system implemented
 4. **Data Sanitization**: Removed sensitive information before storage, prioritizing privacy
 5. **Single User Focus**: Designed for individual accounts rather than institutional dashboards
 
@@ -414,7 +413,6 @@ PostgreSQL database with normalized schema:
 - Transcript data contains academic history which could be sensitive
 - If database is compromised, academic records could be exposed
 - No encryption at rest for transcript data (relies on database security)
-- Password reset tokens in development mode are visible in UI
 
 ### Accessibility Considerations
 
@@ -437,7 +435,7 @@ PostgreSQL database with normalized schema:
 2. **Internationalization**: Support multiple languages and transcript formats
 3. **Institutional Integration**: Allow bulk imports from student information systems
 4. **Enhanced Security**: Implement httpOnly cookies for tokens, add encryption at rest
-5. **Email Integration**: Implement proper email delivery for password resets
+5. **Email Integration**: Add email verification and notifications
 6. **Alternative Input Methods**: Support voice input or assistive technologies for file uploads
 
 ---

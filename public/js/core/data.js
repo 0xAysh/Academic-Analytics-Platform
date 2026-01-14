@@ -1,6 +1,6 @@
 'use strict';
 
-import { getTranscript } from '../api/transcripts.js';
+import { getTranscript } from '../api.js';
 import { sortTermsChronologically } from '../utils/terms.js';
 
 /**
